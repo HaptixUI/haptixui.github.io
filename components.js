@@ -276,8 +276,6 @@ export const COMPONENTS_REGISTRY = [
     name: 'Animated Download Button',
     category: 'Buttons',
     badge: 'State Transition',
-    views: '48.2K',
-    likes: '4.8K',
     description: 'A 3-state morphing button: Idle with badge -> In-progress state with percentage interpolation -> Completion state with animated checkmark.',
     previewTag: '<download-button></download-button>',
     htmlCode: `<!-- Custom Element -->
@@ -312,8 +310,6 @@ const TRANSITIONS = {
     name: 'Add to Cart Delivery Button',
     category: 'Buttons',
     badge: 'Motion Sequence',
-    views: '32.1K',
-    likes: '3.1K',
     description: 'Shopping cart morphs into a delivery truck sequence with road animation and transitions to an order confirmed state.',
     previewTag: '<cart-button></cart-button>',
     htmlCode: `<cart-button></cart-button>`,
@@ -334,8 +330,6 @@ const TRANSITIONS = {
     name: '3D Rotating Glowing Heart',
     category: 'Interactive',
     badge: 'Canvas 3D',
-    views: '54.8K',
-    likes: '6.2K',
     description: 'A 3D volumetric heart composed of 2,600 mathematical points plotted via cardioid parametric equations with pure continuous 360° rotation.',
     previewTag: '<heart-3d></heart-3d>',
     htmlCode: `<!-- Custom Element -->
