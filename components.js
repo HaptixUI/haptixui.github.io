@@ -548,5 +548,165 @@ const TRANSITIONS = {
 .orbit-2 { animation: rotateOrbit2 1.4s linear infinite reverse; }
 .orbit-3 { animation: rotateOrbit3 1.8s linear infinite; }`,
     jsCode: `// Pure CSS 3D hardware-accelerated transforms`
+  },
+  {
+    id: 'string-confession',
+    name: 'Interactive String Confession',
+    category: 'Creative',
+    badge: 'Physics & Reveal',
+    views: '58.4K',
+    likes: '5.6K',
+    description: 'Interactive elastic string physics simulation: drag and pull the pendant to trigger an unfolding confession letter with particle hearts.',
+    previewTag: '<string-confession></string-confession>',
+    htmlCode: `<string-confession></string-confession>`,
+    cssCode: `.string-line {
+  fill: none;
+  stroke: #f43f5e;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.6));
+}
+.pendant-heart {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  transform: rotate(-45deg);
+}`,
+    jsCode: `// Elastic spring resistance & threshold release
+pendant.addEventListener('pointermove', (e) => {
+  const newY = Math.max(70, Math.min(180, 70 + (e.clientY - startY)));
+  path.setAttribute('d', \`M 140 0 Q 140 \${newY * 0.5} 140 \${newY}\`);
+  if (newY > 150) triggerReveal();
+});`
   }
 ];
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT 10: <string-confession>
+   -------------------------------------------------------------------------- */
+class StringConfession extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="confession-stage">
+        <svg class="string-svg" viewBox="0 0 280 250" preserveAspectRatio="none">
+          <path class="string-line" d="M 140 0 Q 140 35 140 70" />
+        </svg>
+
+        <div class="pendant-handle" style="top: 70px;">
+          <div class="pendant-ring"></div>
+          <div class="pendant-heart">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </div>
+          <div class="pull-tooltip">↓ Pull String ↓</div>
+        </div>
+
+        <div class="envelope-modal hidden">
+          <div class="confession-card">
+            <div class="letter-stamp">💌</div>
+            <div class="letter-header">Special Confession</div>
+            <div class="letter-body">"In a world full of temporary variables, you are my only constant."</div>
+            <div class="letter-footer">❤️ Always &amp; Forever</div>
+            <button class="reset-string-btn" type="button">↻ Pull Again</button>
+          </div>
+          <div class="hearts-emitter"></div>
+        </div>
+      </div>
+    `;
+
+    const stage = this.querySelector('.confession-stage');
+    const path = this.querySelector('.string-line');
+    const pendant = this.querySelector('.pendant-handle');
+    const tooltip = this.querySelector('.pull-tooltip');
+    const modal = this.querySelector('.envelope-modal');
+    const resetBtn = this.querySelector('.reset-string-btn');
+    const emitter = this.querySelector('.hearts-emitter');
+
+    let isDragging = false;
+    let startY = 0;
+    let startX = 0;
+    const baseY = 70;
+    let currentY = baseY;
+
+    const setPosition = (x, y) => {
+      const cx = 140 + (x - startX) * 0.25;
+      path.setAttribute('d', `M 140 0 Q ${cx} ${y * 0.5} 140 ${y}`);
+      pendant.style.top = `${y}px`;
+    };
+
+    const triggerReveal = () => {
+      pendant.style.display = 'none';
+      path.setAttribute('d', `M 140 0 Q 140 35 140 70`);
+      modal.classList.remove('hidden');
+
+      // Spawn heart confetti
+      emitter.innerHTML = '';
+      const hearts = ['❤️', '💖', '✨', '💌', '🌸'];
+      for (let i = 0; i < 16; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart-particle';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        const dx = (Math.random() - 0.5) * 220;
+        const dy = -(60 + Math.random() * 120);
+        heart.style.setProperty('--dx', `${dx}px`);
+        heart.style.setProperty('--dy', `${dy}px`);
+        heart.style.left = '50%';
+        heart.style.top = '50%';
+        emitter.appendChild(heart);
+        setTimeout(() => heart.remove(), 1800);
+      }
+    };
+
+    pendant.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      startY = e.clientY;
+      startX = e.clientX;
+      pendant.setPointerCapture(e.pointerId);
+    });
+
+    pendant.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const deltaY = e.clientY - startY;
+      currentY = Math.max(baseY, Math.min(190, baseY + deltaY));
+      setPosition(e.clientX, currentY);
+
+      if (currentY > 140) {
+        tooltip.textContent = 'Release to Reveal! ❤️';
+        tooltip.style.color = '#ffffff';
+        tooltip.style.background = '#f43f5e';
+      } else {
+        tooltip.textContent = '↓ Pull String ↓';
+        tooltip.style.color = '#fda4af';
+        tooltip.style.background = 'rgba(15, 23, 42, 0.85)';
+      }
+    });
+
+    const endDrag = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      if (currentY >= 140) {
+        triggerReveal();
+      } else {
+        // Snap back spring animation
+        currentY = baseY;
+        setPosition(startX, baseY);
+        tooltip.textContent = '↓ Pull String ↓';
+        tooltip.style.color = '#fda4af';
+        tooltip.style.background = 'rgba(15, 23, 42, 0.85)';
+      }
+    };
+
+    pendant.addEventListener('pointerup', endDrag);
+    pendant.addEventListener('pointercancel', endDrag);
+
+    resetBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      setTimeout(() => {
+        pendant.style.display = 'flex';
+        currentY = baseY;
+        setPosition(startX, baseY);
+      }, 250);
+    });
+  }
+}
+customElements.define('string-confession', StringConfession);
+
