@@ -952,7 +952,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   RESPONSIVENESS ACROSS ALL DEVICES (PHONES, TABLETS, DESKTOPS)
+   MULTI-DEVICE RESPONSIVE SYSTEM (MOBILE, TABLET, DESKTOP)
    -------------------------------------------------------------------------- */
 
 /* Large Screens when sidebar is collapsed */
@@ -960,8 +960,183 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
 
-/* Permanent Desktop Layout Across All Screens */
-.components-grid {
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+/* Tablets & Small Laptops (769px – 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .app-layout {
+    gap: 20px;
+    padding: 20px 20px 60px 20px;
+  }
+  .app-sidebar {
+    width: 200px;
+  }
+  .components-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  .modal-dialog {
+    max-width: 90vw;
+  }
+}
+
+/* Mobile Phones (320px – 768px) */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .app-layout {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 14px 60px 14px;
+    overflow-x: clip;
+  }
+
+  /* Mobile Categories: Horizontal Scrollable Strip */
+  .app-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .sidebar-sticky-wrap {
+    gap: 12px;
+  }
+
+  .sidebar-heading-row,
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
+  .sidebar-section:not(:first-child) {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    gap: 8px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-nav-item {
+    width: auto;
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sidebar-nav-item.active {
+    background: rgba(0, 168, 255, 0.15);
+    border-color: var(--accent-cyan);
+  }
+
+  .nav-sidebar-toggle-btn {
+    display: none;
+  }
+
+  .sidebar-expand-float-btn {
+    display: none !important;
+  }
+
+  /* Catalog Browse Area */
+  .browse-header {
+    margin-bottom: 16px;
+  }
+
+  .browse-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .browse-title {
+    font-size: 22px;
+  }
+
+  .browse-subtitle {
+    font-size: 13px;
+  }
+
+  .browse-toolbar {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .search-field,
+  .sort-wrapper,
+  .sort-select {
+    width: 100%;
+  }
+
+  /* 1-Column Fluid Cards Grid */
+  .components-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 14px;
+  }
+
+  .comp-stage {
+    height: 200px;
+  }
+
+  .btn-get-code {
+    min-height: 44px; /* Accessible touch target */
+  }
+
+  /* Mobile Code Inspector Modal */
+  .modal-dialog {
+    max-width: 100%;
+    max-height: 94vh;
+    border-radius: 18px;
+    margin: 8px;
+  }
+
+  .modal-header {
+    padding: 14px 18px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-content-grid {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    overflow-y: auto;
+  }
+
+  .modal-preview-pane {
+    height: 220px;
+    min-height: 220px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 20px;
+  }
+
+  .modal-code-pane {
+    min-height: 260px;
+    flex: 1;
+  }
+
+  .modal-code-body pre {
+    font-size: 11.5px;
+  }
 }
 
