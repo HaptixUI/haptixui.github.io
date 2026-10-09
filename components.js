@@ -551,162 +551,304 @@ const TRANSITIONS = {
   },
   {
     id: 'string-confession',
-    name: 'Interactive String Confession',
+    name: 'Love Strings Confession',
     category: 'Creative',
-    badge: 'Physics & Reveal',
-    views: '58.4K',
-    likes: '5.6K',
-    description: 'Interactive elastic string physics simulation: drag and pull the pendant to trigger an unfolding confession letter with particle hearts.',
+    badge: 'Cloth Physics',
+    views: '68.4K',
+    likes: '6.4K',
+    description: 'Verlet integration cloth simulation with repetitive love confession text that ripples, bends, and flows like real fabric when plucked.',
     previewTag: '<string-confession></string-confession>',
-    htmlCode: `<string-confession></string-confession>`,
-    cssCode: `.string-line {
-  fill: none;
-  stroke: #f43f5e;
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.6));
-}
-.pendant-heart {
-  width: 42px; height: 42px;
-  background: linear-gradient(135deg, #f43f5e, #be123c);
-  transform: rotate(-45deg);
+    htmlCode: `<!-- Love Strings Cloth Container -->
+<div class="Love-String">
+  <string-confession></string-confession>
+</div>
+
+<!-- Load Component -->
+<script type="module" src="components.js"></script>`,
+    cssCode: `.Love-String {
+  margin: 1em;
+  grid-gap: 2em;
+  min-width: 8em;
+  text-align: center;
+  border: solid pink;
+  border-radius: 12px;
+  align-items: center;
+
+  display: flex;
+  background-color: #1a1a1d;
+  padding: 2.0rem;
+  color: #ecf0f1;
+  place-content: center;
 }`,
-    jsCode: `// Elastic spring resistance & threshold release
-pendant.addEventListener('pointermove', (e) => {
-  const newY = Math.max(70, Math.min(180, 70 + (e.clientY - startY)));
-  path.setAttribute('d', \`M 140 0 Q 140 \${newY * 0.5} 140 \${newY}\`);
-  if (newY > 150) triggerReveal();
-});`
+    jsCode: `// Authentic Verlet Cloth Simulation
+// Points & Constraints solver
+for (let i = 0; i < iterations; i++) {
+  constraints.forEach(c => c.solve());
+}`
   }
 ];
 
 /* --------------------------------------------------------------------------
    CUSTOM ELEMENT 10: <string-confession>
+   Authentic Love Strings Cloth Physics Tapestry
    -------------------------------------------------------------------------- */
 class StringConfession extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
-      <div class="confession-stage">
-        <svg class="string-svg" viewBox="0 0 280 250" preserveAspectRatio="none">
-          <path class="string-line" d="M 140 0 Q 140 35 140 70" />
-        </svg>
-
-        <div class="pendant-handle" style="top: 70px;">
-          <div class="pendant-ring"></div>
-          <div class="pendant-heart">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-          </div>
-          <div class="pull-tooltip">↓ Pull String ↓</div>
-        </div>
-
-        <div class="envelope-modal hidden">
-          <div class="confession-card">
-            <div class="letter-stamp">💌</div>
-            <div class="letter-header">Special Confession</div>
-            <div class="letter-body">"In a world full of temporary variables, you are my only constant."</div>
-            <div class="letter-footer">❤️ Always &amp; Forever</div>
-            <button class="reset-string-btn" type="button">↻ Pull Again</button>
-          </div>
-          <div class="hearts-emitter"></div>
-        </div>
+      <div class="love-strings-widget">
+        <canvas class="love-strings-canvas"></canvas>
+        <div class="love-strings-hint">✨ Drag / Swipe to pluck love strings ✨</div>
       </div>
     `;
 
-    const stage = this.querySelector('.confession-stage');
-    const path = this.querySelector('.string-line');
-    const pendant = this.querySelector('.pendant-handle');
-    const tooltip = this.querySelector('.pull-tooltip');
-    const modal = this.querySelector('.envelope-modal');
-    const resetBtn = this.querySelector('.reset-string-btn');
-    const emitter = this.querySelector('.hearts-emitter');
+    const canvas = this.querySelector('canvas');
+    if (!canvas) return;
 
-    let isDragging = false;
-    let startY = 0;
-    let startX = 0;
-    const baseY = 70;
-    let currentY = baseY;
+    const fullCode = "I Love You My Sweetheart\n".repeat(30);
+    const dpr = window.devicePixelRatio || 1;
+    const w = 280;
+    const h = 230;
 
-    const setPosition = (x, y) => {
-      const cx = 140 + (x - startX) * 0.25;
-      path.setAttribute('d', `M 140 0 Q ${cx} ${y * 0.5} 140 ${y}`);
-      pendant.style.top = `${y}px`;
+    const CONFIG = {
+      awidth: w,
+      aheight: h,
+      gridW: 22,
+      gridH: 26,
+      gravity: 0.2,
+      damping: 0.99,
+      iterationsPerFrame: 4,
+      compressFactor: 0.02,
+      stretchFactor: 1.1,
+      mouseSize: 4000,
+      mouseStrength: 4
+    };
+    CONFIG.cellWidth = CONFIG.awidth / (CONFIG.gridW - 1);
+    CONFIG.cellHeight = CONFIG.aheight / (CONFIG.gridH - 1);
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+
+    const ctx = canvas.getContext('2d');
+
+    // Pre-render character glyphs
+    const charCanvases = {};
+    const fontSize = Math.max(10, Math.floor(CONFIG.cellHeight * 1.1));
+    const boxSize = Math.ceil(fontSize * 1.4);
+
+    for (const ch of new Set(fullCode)) {
+      if (ch === ' ' || ch === '\n') continue;
+      const off = document.createElement('canvas');
+      off.width = boxSize * dpr;
+      off.height = boxSize * dpr;
+      const octx = off.getContext('2d');
+      octx.scale(dpr, dpr);
+      octx.font = `bold ${fontSize}px monospace`;
+      octx.textAlign = 'center';
+      octx.textBaseline = 'middle';
+      octx.fillStyle = '#fc0843';
+      octx.fillText(ch, boxSize / 2, boxSize / 2);
+      charCanvases[ch] = off;
+      charCanvases[ch].logicalSize = boxSize;
+    }
+
+    class Vec2 {
+      constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+      reset(x, y) { this.x = x; this.y = y; return this; }
+      add(v) { this.x += v.x; this.y += v.y; return this; }
+      subtract(v) { this.x -= v.x; this.y -= v.y; return this; }
+      subtractNew(v) { return new Vec2(this.x - v.x, this.y - v.y); }
+      get lengthSquared() { return this.x * this.x + this.y * this.y; }
+      get angle() { return Math.atan2(this.y, this.x); }
+    }
+
+    class Particle {
+      constructor(x, y, pinned, char) {
+        this.pos = new Vec2(x, y);
+        this.oldPos = new Vec2(x, y);
+        this.velocity = new Vec2();
+        this.acceleration = new Vec2();
+        this.pinned = pinned;
+        this.char = char;
+      }
+      update() {
+        if (this.pinned) { this.acceleration.x = 0; this.acceleration.y = 0; return; }
+        this.velocity.reset(
+          (this.pos.x - this.oldPos.x) * CONFIG.damping,
+          (this.pos.y - this.oldPos.y) * CONFIG.damping
+        );
+        this.oldPos.reset(this.pos.x, this.pos.y);
+        this.pos.x += this.velocity.x + this.acceleration.x;
+        this.pos.y += this.velocity.y + this.acceleration.y + CONFIG.gravity;
+        this.acceleration.reset(0, 0);
+      }
+      applyForce(v) { this.acceleration.add(v); }
+    }
+
+    class Constraint {
+      constructor(p1, p2, length, compressFactor, stretchFactor) {
+        this.p1 = p1;
+        this.p2 = p2;
+        this.length = length;
+        this.minLength = length * compressFactor;
+        this.maxLength = length * stretchFactor;
+      }
+      solve() {
+        const dx = this.p2.pos.x - this.p1.pos.x;
+        const dy = this.p2.pos.y - this.p1.pos.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance === 0) return;
+
+        let targetLength = this.length;
+        if (distance < this.minLength) targetLength = this.minLength;
+        else if (distance > this.maxLength) targetLength = this.maxLength;
+        else return;
+
+        const diff = (targetLength - distance) / distance * 0.5;
+        const offsetX = dx * diff;
+        const offsetY = dy * diff;
+
+        if (!this.p1.pinned) { this.p1.pos.x -= offsetX; this.p1.pos.y -= offsetY; }
+        if (!this.p2.pinned) { this.p2.pos.x += offsetX; this.p2.pos.y += offsetY; }
+      }
+    }
+
+    const particles = [];
+    const constraints = [];
+
+    const getPointID = (row, col) => col * CONFIG.gridH + row;
+
+    for (let i = 0; i < CONFIG.gridW; i++) {
+      for (let j = 0; j < CONFIG.gridH; j++) {
+        const x = i * CONFIG.cellWidth;
+        const y = j * CONFIG.cellHeight;
+        const pinned = j === 0;
+        const charIndex = (i + j * CONFIG.gridW) % fullCode.length;
+        const char = fullCode[charIndex] || ' ';
+        particles.push(new Particle(x, y, pinned, char));
+      }
+    }
+
+    for (let i = 0; i < CONFIG.gridW; i++) {
+      for (let j = 0; j < CONFIG.gridH; j++) {
+        const id = getPointID(j, i);
+        const p = particles[id];
+        if (j < CONFIG.gridH - 1) {
+          const bottomP = particles[getPointID(j + 1, i)];
+          const con = new Constraint(p, bottomP, CONFIG.cellHeight, CONFIG.compressFactor, CONFIG.stretchFactor);
+          constraints.push(con);
+          p.downConstraint = con;
+        }
+        if (i < CONFIG.gridW - 1) {
+          const rightP = particles[getPointID(j, i + 1)];
+          const hc = new Constraint(p, rightP, CONFIG.cellWidth, 0.6, 4);
+          constraints.push(hc);
+        }
+      }
+    }
+
+    const mousePos = new Vec2(-1000, -1000);
+    let grabbed = null;
+
+    const smoothstep = (min, max, val) => {
+      const x = Math.max(0, Math.min(1, (val - min) / (max - min)));
+      return x * x * (3 - 2 * x);
     };
 
-    const triggerReveal = () => {
-      pendant.style.display = 'none';
-      path.setAttribute('d', `M 140 0 Q 140 35 140 70`);
-      modal.classList.remove('hidden');
-
-      // Spawn heart confetti
-      emitter.innerHTML = '';
-      const hearts = ['❤️', '💖', '✨', '💌', '🌸'];
-      for (let i = 0; i < 16; i++) {
-        const heart = document.createElement('span');
-        heart.className = 'floating-heart-particle';
-        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        const dx = (Math.random() - 0.5) * 220;
-        const dy = -(60 + Math.random() * 120);
-        heart.style.setProperty('--dx', `${dx}px`);
-        heart.style.setProperty('--dy', `${dy}px`);
-        heart.style.left = '50%';
-        heart.style.top = '50%';
-        emitter.appendChild(heart);
-        setTimeout(() => heart.remove(), 1800);
-      }
+    const updateMouse = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mousePos.x = (e.clientX - rect.left) * (w / rect.width);
+      mousePos.y = (e.clientY - rect.top) * (h / rect.height);
     };
 
-    pendant.addEventListener('pointerdown', (e) => {
-      isDragging = true;
-      startY = e.clientY;
-      startX = e.clientX;
-      pendant.setPointerCapture(e.pointerId);
-    });
-
-    pendant.addEventListener('pointermove', (e) => {
-      if (!isDragging) return;
-      const deltaY = e.clientY - startY;
-      currentY = Math.max(baseY, Math.min(190, baseY + deltaY));
-      setPosition(e.clientX, currentY);
-
-      if (currentY > 140) {
-        tooltip.textContent = 'Release to Reveal! ❤️';
-        tooltip.style.color = '#ffffff';
-        tooltip.style.background = '#f43f5e';
-      } else {
-        tooltip.textContent = '↓ Pull String ↓';
-        tooltip.style.color = '#fda4af';
-        tooltip.style.background = 'rgba(15, 23, 42, 0.85)';
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      updateMouse(e);
+      for (const p of particles) {
+        if (mousePos.subtractNew(p.pos).lengthSquared < 400) {
+          grabbed = p;
+          grabbed.origPinned = p.pinned;
+          p.pinned = true;
+          break;
+        }
       }
     });
 
-    const endDrag = () => {
-      if (!isDragging) return;
-      isDragging = false;
-      if (currentY >= 140) {
-        triggerReveal();
-      } else {
-        // Snap back spring animation
-        currentY = baseY;
-        setPosition(startX, baseY);
-        tooltip.textContent = '↓ Pull String ↓';
-        tooltip.style.color = '#fda4af';
-        tooltip.style.background = 'rgba(15, 23, 42, 0.85)';
+    canvas.addEventListener('pointermove', (e) => {
+      updateMouse(e);
+      if (grabbed) {
+        grabbed.pos.reset(mousePos.x, mousePos.y);
+        grabbed.oldPos.reset(mousePos.x, mousePos.y);
       }
+      for (const p of particles) {
+        const diff = mousePos.subtractNew(p.pos);
+        const ls = diff.lengthSquared;
+        if (ls < CONFIG.mouseSize) {
+          const a = diff.angle - Math.PI;
+          const strength = smoothstep(CONFIG.mouseSize, -2000, ls) * CONFIG.mouseStrength / 300;
+          p.applyForce(new Vec2(Math.cos(a) * strength, Math.sin(a) * strength));
+        }
+      }
+    });
+
+    const pointerUp = () => {
+      if (grabbed) {
+        grabbed.pinned = grabbed.origPinned;
+        grabbed = null;
+      }
+      mousePos.reset(-1000, -1000);
     };
+    canvas.addEventListener('pointerup', pointerUp);
+    canvas.addEventListener('pointercancel', pointerUp);
 
-    pendant.addEventListener('pointerup', endDrag);
-    pendant.addEventListener('pointercancel', endDrag);
+    let raf;
+    const runloop = () => {
+      raf = requestAnimationFrame(runloop);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    resetBtn.addEventListener('click', () => {
-      modal.classList.add('hidden');
-      setTimeout(() => {
-        pendant.style.display = 'flex';
-        currentY = baseY;
-        setPosition(startX, baseY);
-      }, 250);
-    });
+      particles.forEach(p => p.update());
+      for (let i = 0; i < CONFIG.iterationsPerFrame; i++) {
+        constraints.forEach(c => c.solve());
+      }
+
+      particles.forEach(p => {
+        if (p.char && p.char !== ' ' && p.char !== '\n') {
+          const con = p.downConstraint;
+          let angle = 0;
+          const img = charCanvases[p.char];
+          if (!img) return;
+          const logicalSize = img.logicalSize;
+          const half = logicalSize / 2;
+
+          let cos = 1, sin = 0;
+          if (con) {
+            const dx = con.p2.pos.x - con.p1.pos.x;
+            const dy = con.p2.pos.y - con.p1.pos.y;
+            angle = Math.atan2(dy, dx) - Math.PI / 2;
+            cos = Math.cos(angle);
+            sin = Math.sin(angle);
+          }
+
+          ctx.setTransform(
+            cos * dpr, sin * dpr,
+            -sin * dpr, cos * dpr,
+            p.pos.x * dpr, p.pos.y * dpr
+          );
+          ctx.drawImage(img, -half, -half, logicalSize, logicalSize);
+        }
+      });
+    };
+    raf = requestAnimationFrame(runloop);
+
+    this._cleanup = () => cancelAnimationFrame(raf);
+  }
+
+  disconnectedCallback() {
+    if (this._cleanup) this._cleanup();
   }
 }
 customElements.define('string-confession', StringConfession);
+
 
