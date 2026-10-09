@@ -98,10 +98,12 @@
       return `rgb(${r}, ${g}, ${b})`;
     }
 
-    // 4. Motion & 3D Rotation State
+    // 4. Motion & Natural 3D Trackball Physics
     let theta = 0;
     let phi = 0;
-    const autoSpeed = 0.035;
+    let velTheta = 0;
+    let velPhi = 0;
+    const idleSpeed = 0.028;
     let isDragging = false;
     let lastX = 0, lastY = 0;
 
@@ -109,6 +111,8 @@
       isDragging = true;
       lastX = e.clientX;
       lastY = e.clientY;
+      velTheta = 0;
+      velPhi = 0;
       container.setPointerCapture?.(e.pointerId);
     });
 
@@ -116,9 +120,15 @@
       if (!isDragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
-      theta += dx * 0.012;
-      phi -= dy * 0.01;
-      phi = Math.max(-0.65, Math.min(0.65, phi));
+
+      // Natural trackball physics: drag up -> tilts up, drag down -> tilts down
+      theta += dx * 0.01;
+      phi += dy * 0.01;
+      phi = Math.max(-0.75, Math.min(0.75, phi));
+
+      velTheta = dx * 0.008;
+      velPhi = dy * 0.008;
+
       lastX = e.clientX;
       lastY = e.clientY;
     });
@@ -127,12 +137,20 @@
     window.addEventListener('pointerup', stopDrag);
     window.addEventListener('pointercancel', stopDrag);
 
-    // 5. 60 FPS Render Loop (Pure 3D Rotation, Steady Scale, Clean Canvas)
+    // 5. 60 FPS Render Loop (Pure 3D Rotation, Inertia Physics)
     function render() {
       ctx.clearRect(0, 0, width, height);
 
       if (!isDragging) {
-        theta += autoSpeed;
+        theta += velTheta + idleSpeed;
+        phi += velPhi;
+
+        velTheta *= 0.93;
+        velPhi *= 0.93;
+
+        // Smoothly settle vertical pitch back toward center when idle
+        phi += (0 - phi) * 0.025;
+        phi = Math.max(-0.75, Math.min(0.75, phi));
       }
 
       const baseScale = Math.min(width, height) * 0.22;
