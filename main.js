@@ -263,8 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="comp-badge">${comp.badge}</span>
           </div>
 
-          <p class="comp-desc">${comp.description}</p>
-
           <div class="comp-actions-row">
             <button class="btn-get-code inspect-btn" data-id="${comp.id}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
