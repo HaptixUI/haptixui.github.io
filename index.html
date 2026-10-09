@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>HaptixUI | Interactive Micro-Interactions &amp; UI Components</title>
+  <meta name="description" content="Open-source production-ready micro-interactions and animated UI elements built with pure HTML, CSS, and Web Components.">
+
+  <!-- Favicon / Brand Icon -->
+  <link rel="icon" type="image/jpeg" href="haptixui_logo.jpg">
+  <link rel="apple-touch-icon" href="haptixui_logo.jpg">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- App Header / Navbar with Modern Mega Dropdown -->
+  <header class="app-navbar" id="appNavbar">
+    <div class="nav-container">
+      <!-- Left: Logo & Dropdown -->
+      <div class="nav-left">
+        <a href="./" class="brand-logo" aria-label="HaptixUI Home">
+          <div class="logo-badge">
+            <img src="haptixui_logo.jpg" alt="HaptixUI Logo" class="brand-logo-img">
+          </div>
+          <span class="brand-name">Haptix<span>UI</span></span>
+        </a>
+
+        <!-- Categories Sidebar Toggle Button -->
+        <button class="nav-sidebar-toggle-btn active" id="sidebarToggleBtn" title="Toggle Categories Sidebar (Ctrl+B)" aria-label="Toggle Categories Sidebar" aria-pressed="true">
+          <svg class="toggle-icon-sidebar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+          <span>Categories</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Responsive App Layout (Sidebar + Main Content) -->
+  <div class="app-layout" id="appLayout">
+    <!-- Floating Edge Button to Unhide Categories when Sidebar is Collapsed -->
+    <button class="sidebar-expand-float-btn" id="sidebarExpandFloatBtn" title="Show Categories (Ctrl+B)" aria-label="Show Categories">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+        <line x1="9" y1="3" x2="9" y2="21"></line>
+      </svg>
+      <span>Categories</span>
+    </button>
+
+    <!-- Left Sidebar (Desktop Fixed Sticky / Mobile Touch Horizontal Strip) -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-sticky-wrap">
+        <!-- Section: Categories Navigation with SVG Icons -->
+        <div class="sidebar-section">
+          <div class="sidebar-heading-row">
+            <span class="sidebar-heading">CATEGORIES</span>
+            <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide Sidebar (Ctrl+B)" aria-label="Hide Sidebar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          <nav class="sidebar-nav" role="tablist">
+            <button class="sidebar-nav-item active" data-category="All" role="tab">
+              <span class="item-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                  <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                  <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                  <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                </svg>
+              </span>
+              <span class="item-label">All</span>
+              <span class="item-count">9</span>
+            </button>
+            <button class="sidebar-nav-item" data-category="Buttons" role="tab">
+              <span class="item-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="6" width="18" height="12" rx="6"></rect>
+                  <circle cx="8" cy="12" r="2" fill="currentColor"></circle>
+                </svg>
+              </span>
+              <span class="item-label">Buttons</span>
+              <span class="item-count">5</span>
+            </button>
+            <button class="sidebar-nav-item" data-category="Toggles" role="tab">
+              <span class="item-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+                  <circle cx="16" cy="12" r="4" fill="currentColor"></circle>
+                </svg>
+              </span>
+              <span class="item-label">Toggle switches</span>
+              <span class="item-count">2</span>
+            </button>
+            <button class="sidebar-nav-item" data-category="Cards" role="tab">
+              <span class="item-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </span>
+              <span class="item-label">Cards</span>
+              <span class="item-count">1</span>
+            </button>
+            <button class="sidebar-nav-item" data-category="Loaders" role="tab">
+              <span class="item-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.5 2v6h-6"></path>
+                  <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                </svg>
+              </span>
+              <span class="item-label">Loaders</span>
+              <span class="item-count">1</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Section: Stage Background Switcher -->
+        <div class="sidebar-section">
+          <div class="sidebar-heading">STAGE THEME</div>
+          <div class="theme-switch-group">
+            <button class="theme-pill-btn active" data-theme="dark" title="Dark Slate Stage">Dark</button>
+            <button class="theme-pill-btn" data-theme="black" title="AMOLED Pitch Black Stage">Black</button>
+            <button class="theme-pill-btn" data-theme="light" title="Light Canvas Stage">Light</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- Browse Header -->
+      <section class="browse-header">
+        <div class="browse-title-row">
+          <div>
+            <h1 class="browse-title" id="browseCategoryTitle">Browse all</h1>
+            <p class="browse-subtitle" id="browseSubtitle">Open-Source animated UI elements made with pure CSS &amp; Web Components</p>
+          </div>
+          <div class="browse-count-badge" id="browseCountBadge">9 elements</div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="browse-toolbar">
+          <!-- Search input with shortcut hint -->
+          <div class="search-field">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input" 
+              placeholder="Search components, tags, actions..."
+              autocomplete="off"
+            >
+            <button class="search-clear-btn" id="searchClearBtn" aria-label="Clear search">×</button>
+          </div>
+
+          <!-- Sort dropdown -->
+          <div class="sort-wrapper">
+            <select class="sort-select" id="sortSelect" aria-label="Sort components">
+              <option value="popular">Sort: Popular</option>
+              <option value="name">Sort: Name A-Z</option>
+              <option value="views">Sort: Most Viewed</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Components Showcase Grid -->
+      <section class="components-grid" id="componentsGrid" aria-label="Component gallery">
+        <!-- Injected dynamically by main.js -->
+      </section>
+
+      <!-- Clean Minimal Footer -->
+      <footer class="app-footer">
+        <div>&copy; 2026 HaptixUI. Open-source component catalog.</div>
+        <div class="footer-links">
+          <a href="https://github.com/HaptixUI/haptixui" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Inspector Modal (Code & Live Device Preview) -->
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <h2 class="modal-title" id="modalTitle">Component Name</h2>
+          <span class="comp-badge" id="modalBadge">Interactive</span>
+        </div>
+        <button class="modal-close" id="modalCloseBtn" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-content-grid">
+        <!-- Left: Interactive Preview Canvas -->
+        <div class="modal-preview-pane">
+          <div style="position: absolute; top: 16px; left: 20px; display: flex; gap: 8px;">
+            <button class="stage-btn" id="modalStageThemeBtn" title="Toggle Canvas Background (Dark / Light)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-preview-stage" id="modalPreviewStage">
+            <!-- Dynamic Component Placed Here -->
+          </div>
+        </div>
+
+        <!-- Right: Code Tabs & Copy Action -->
+        <div class="modal-code-pane">
+          <div class="modal-tabs">
+            <div class="tab-list">
+              <button class="tab-btn active" data-tab="html">HTML</button>
+              <button class="tab-btn" data-tab="css">CSS</button>
+              <button class="tab-btn" data-tab="js">JS</button>
+            </div>
+            <button class="code-copy-action" id="modalCopyBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Code</span>
+            </button>
+          </div>
+
+          <div class="modal-code-body">
+            <pre><code id="modalCodeSnippet"></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastText">Code copied to clipboard!</span>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="components.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
