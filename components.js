@@ -148,10 +148,12 @@ class Heart3D extends HTMLElement {
     this._ro.observe(container);
     updateSize();
 
-    // 5. Interactive Drag & Motion State
+    // 5. Interactive Drag & Natural Momentum Physics
     let theta = 0;
     let phi = 0;
-    let autoSpeed = 0.028;
+    let velTheta = 0;
+    let velPhi = 0;
+    const idleSpeed = 0.026;
     let isDragging = false;
     let lastX = 0, lastY = 0;
 
@@ -159,6 +161,8 @@ class Heart3D extends HTMLElement {
       isDragging = true;
       lastX = e.clientX;
       lastY = e.clientY;
+      velTheta = 0;
+      velPhi = 0;
       container.setPointerCapture?.(e.pointerId);
     });
 
@@ -166,9 +170,15 @@ class Heart3D extends HTMLElement {
       if (!isDragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
-      theta += dx * 0.012;
-      phi -= dy * 0.01;
-      phi = Math.max(-0.65, Math.min(0.65, phi));
+
+      // Natural trackball physics: drag up -> tilts up, drag down -> tilts down
+      theta += dx * 0.01;
+      phi += dy * 0.01;
+      phi = Math.max(-0.75, Math.min(0.75, phi));
+
+      velTheta = dx * 0.008;
+      velPhi = dy * 0.008;
+
       lastX = e.clientX;
       lastY = e.clientY;
     });
@@ -177,13 +187,21 @@ class Heart3D extends HTMLElement {
     container.addEventListener('pointerup', stopDrag);
     container.addEventListener('pointercancel', stopDrag);
 
-    // 6. 60 FPS Render Loop (Pure 3D Rotation, No Heartbeat)
+    // 6. 60 FPS Render Loop (Natural inertia & pure 3D rotation)
     const render = () => {
       if (!this.isConnected) return;
       ctx.clearRect(0, 0, width, height);
 
       if (!isDragging) {
-        theta += autoSpeed;
+        theta += velTheta + idleSpeed;
+        phi += velPhi;
+
+        velTheta *= 0.93;
+        velPhi *= 0.93;
+
+        // Gently relax vertical pitch back toward center when idle
+        phi += (0 - phi) * 0.025;
+        phi = Math.max(-0.75, Math.min(0.75, phi));
       }
 
       const baseScale = Math.min(width, height) * 0.23;
