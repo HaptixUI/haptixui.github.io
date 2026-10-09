@@ -1,0 +1,800 @@
+/* ==========================================================================
+   HAPTIXUI - MICRO-INTERACTION STYLES
+   Production-ready animated UI components
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   COMPONENT 1: ANIMATED DOWNLOAD BUTTON
+   -------------------------------------------------------------------------- */
+@import url('download-button.css');
+
+/* --------------------------------------------------------------------------
+   COMPONENT 2: ADD TO CART -> DELIVERY TRUCK BUTTON
+   -------------------------------------------------------------------------- */
+.cart-btn-wrap {
+  display: inline-block;
+  user-select: none;
+}
+
+.cart-btn {
+  position: relative;
+  width: 240px;
+  height: 60px;
+  background: #181920;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cart-btn:hover:not(.animating):not(.ordered) {
+  background: #232530;
+  transform: translateY(-2px);
+  border-color: rgba(0, 168, 255, 0.4);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6);
+}
+
+.cart-btn .btn-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.cart-btn .btn-content svg {
+  width: 20px;
+  height: 20px;
+  stroke: #00a8ff;
+}
+
+/* Truck Animation Scene */
+.truck-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.truck-wrapper {
+  position: absolute;
+  left: -80px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.truck-icon {
+  width: 46px;
+  height: 28px;
+  position: relative;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+.truck-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.road-line {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #38bdf8 0, #38bdf8 14px, transparent 14px, transparent 24px);
+  opacity: 0.85;
+}
+
+.cart-btn.animating {
+  background: #0b1120;
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 20px rgba(0, 168, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.cart-btn.animating .btn-content {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.cart-btn.animating .truck-scene {
+  opacity: 1;
+}
+
+.cart-btn.animating .truck-wrapper {
+  animation: driveTruck 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.cart-btn.animating .truck-icon {
+  animation: truckBounce 0.25s infinite alternate ease-in-out;
+}
+
+.cart-btn.animating .road-line {
+  animation: roadMove 0.35s infinite linear;
+}
+
+@keyframes driveTruck {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(95px); }
+  65% { transform: translateX(195px); }
+  100% { transform: translateX(360px); }
+}
+
+@keyframes truckBounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1.8px); }
+}
+
+@keyframes roadMove {
+  0% { background-position: 0 0; }
+  100% { background-position: -24px 0; }
+}
+
+.cart-btn .order-done-text {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cart-btn.ordered {
+  background: #10b981;
+  border-color: #10b981;
+  box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.6), 0 0 0 1.5px rgba(255, 255, 255, 0.35);
+}
+
+.cart-btn.ordered .order-done-text {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cart-btn.ordered .btn-content,
+.cart-btn.ordered .truck-scene {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   COMPONENT 3: PARTICLE HEART FAVORITE BUTTON
+   -------------------------------------------------------------------------- */
+.heart-btn-wrap {
+  display: inline-block;
+  user-select: none;
+}
+
+.heart-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #181920;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 26px;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f1f5f9;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+
+.heart-btn:hover {
+  background: #222430;
+  border-color: rgba(255, 59, 92, 0.4);
+  transform: translateY(-2px);
+}
+
+.heart-icon-box {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heart-icon-box svg {
+  width: 24px;
+  height: 24px;
+  stroke: #94a3b8;
+  fill: transparent;
+  stroke-width: 2;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.heart-btn.liked .heart-icon-box svg {
+  stroke: #ff2a6d;
+  fill: #ff2a6d;
+  animation: heartPop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.45); }
+  75% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* Particle Sparks */
+.sparkle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.heart-btn.liked .sparkle {
+  animation: explodeSpark 0.6s ease-out forwards;
+}
+
+@keyframes explodeSpark {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+.heart-count {
+  font-variant-numeric: tabular-nums;
+  color: #94a3b8;
+  transition: color 0.3s ease;
+}
+
+.heart-btn.liked .heart-count {
+  color: #ff2a6d;
+}
+
+/* --------------------------------------------------------------------------
+   COMPONENT 4: DAY & NIGHT COSMIC THEME TOGGLE
+   -------------------------------------------------------------------------- */
+.theme-switch-wrap {
+  display: inline-block;
+  user-select: none;
+}
+
+.theme-switch {
+  position: relative;
+  width: 82px;
+  height: 42px;
+  border-radius: 9999px;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: background 0.45s ease, border-color 0.45s ease;
+}
+
+.theme-switch.is-day {
+  background: #38bdf8;
+  border-color: #7dd3fc;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2), 0 8px 20px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Celestial Orb (Sun/Moon) */
+.celestial-orb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  box-shadow: inset -2px -2px 0 0 rgba(148, 163, 184, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translateX(0);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.45s ease, box-shadow 0.45s ease;
+}
+
+.theme-switch.is-day .celestial-orb {
+  transform: translateX(40px);
+  background: #facc15;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1.5px #fef08a, inset -1px -1px 0 rgba(234, 179, 8, 0.5);
+}
+
+/* Stars & Clouds */
+.sky-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sky-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.sky-star {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: starTwinkle 2s infinite alternate ease-in-out;
+}
+
+@keyframes starTwinkle {
+  0% { transform: scale(0.6); opacity: 0.3; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+.sky-clouds {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s ease;
+}
+
+.theme-switch.is-day .sky-stars {
+  opacity: 0;
+}
+
+.theme-switch.is-day .sky-clouds {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cloud-bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+}
+
+/* --------------------------------------------------------------------------
+   COMPONENT 5: TRASH / SHREDDER DELETE BUTTON
+   -------------------------------------------------------------------------- */
+.trash-btn-wrap {
+  display: inline-block;
+  user-select: none;
+}
+
+.trash-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 220px;
+  height: 56px;
+  background: #1c1d24;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 9999px;
+  color: #f87171;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trash-btn:hover:not(.deleting):not(.deleted) {
+  background: #2a1b22;
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+.trash-icon-box {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.trash-can-body {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  bottom: 0;
+  left: 2px;
+}
+
+.trash-can-lid {
+  width: 18px;
+  height: 6px;
+  position: absolute;
+  top: 0;
+  left: 2px;
+  transform-origin: 0% 100%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.trash-btn:hover .trash-can-lid {
+  transform: rotate(-30deg) translateY(-2px);
+}
+
+.trash-btn.deleting {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.7), 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+  animation: trashShake 0.4s ease infinite;
+}
+
+@keyframes trashShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.trash-btn.deleted {
+  background: #181920;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------------------
+   COMPONENT 6: 3D HOLOGRAPHIC TILT CARD
+   -------------------------------------------------------------------------- */
+.holo-card-perspective {
+  perspective: 1000px;
+  display: inline-block;
+}
+
+.holo-card {
+  position: relative;
+  width: 260px;
+  height: 160px;
+  background: rgba(23, 25, 35, 0.85);
+  backdrop-filter: blur(16px);
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+}
+
+.holo-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.holo-card:hover::before {
+  opacity: 1;
+}
+
+.holo-card:hover {
+  border-color: rgba(0, 168, 255, 0.4);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+}
+
+.holo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  margin-bottom: 14px;
+}
+
+.holo-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.holo-desc {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT 7: <copy-button>
+   Fluid Ripple Copy Button with Success State
+   -------------------------------------------------------------------------- */
+.copy-btn-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-pill-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: #151821;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.copy-pill-btn:hover:not(.copied) {
+  background: #1c202d;
+  border-color: rgba(0, 168, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+}
+
+.copy-pill-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.copy-pill-btn.copied {
+  background: #0d2818;
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.copy-icon-box {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-icon-default,
+.copy-icon-check {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.copy-icon-check {
+  opacity: 0;
+  transform: scale(0.3) rotate(-30deg);
+  color: #22c55e;
+}
+
+.copy-pill-btn.copied .copy-icon-default {
+  opacity: 0;
+  transform: scale(0.3) rotate(30deg);
+}
+
+.copy-pill-btn.copied .copy-icon-check {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+.copy-btn-text {
+  transition: color 0.3s ease;
+}
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT 8: <cyber-toggle>
+   Futuristic Cyberpunk Switch
+   -------------------------------------------------------------------------- */
+.cyber-toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-switch {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+}
+
+.cyber-track {
+  position: relative;
+  width: 90px;
+  height: 44px;
+  background: #10131a;
+  border: 1.5px solid #232838;
+  border-radius: 22px;
+  padding: 4px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.cyber-switch.active .cyber-track {
+  background: #091a29;
+  border-color: #00a8ff;
+}
+
+.cyber-status-text {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 10px;
+  user-select: none;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-status-text.off {
+  color: #64748b;
+}
+
+.cyber-status-text.on {
+  color: #00a8ff;
+  opacity: 0.3;
+}
+
+.cyber-switch.active .cyber-status-text.on {
+  opacity: 1;
+}
+
+.cyber-switch.active .cyber-status-text.off {
+  opacity: 0.3;
+}
+
+.cyber-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 34px;
+  height: 34px;
+  background: #202636;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease;
+  z-index: 5;
+}
+
+.cyber-thumb-core {
+  width: 10px;
+  height: 10px;
+  background: #64748b;
+  border-radius: 50%;
+  transition: background 0.35s ease;
+}
+
+.cyber-switch.active .cyber-thumb {
+  transform: translateX(46px);
+  background: #00a8ff;
+}
+
+.cyber-switch.active .cyber-thumb-core {
+  background: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT 9: <quantum-loader>
+   Multi-axis Orbit Particles Loader
+   -------------------------------------------------------------------------- */
+.quantum-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.quantum-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  transform-style: preserve-3d;
+  perspective: 400px;
+}
+
+.quantum-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.orbit-1 {
+  border-top-color: #00a8ff;
+  border-bottom-color: #00a8ff;
+  animation: rotateOrbit1 1.6s linear infinite;
+}
+
+.orbit-2 {
+  border-right-color: #a855f7;
+  border-left-color: #a855f7;
+  animation: rotateOrbit2 1.4s linear infinite reverse;
+}
+
+.orbit-3 {
+  border-top-color: #22c55e;
+  border-right-color: #22c55e;
+  animation: rotateOrbit3 1.8s linear infinite;
+}
+
+.quantum-center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: pulseDot 1.2s ease-in-out infinite alternate;
+}
+
+.quantum-label {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.12em;
+}
+
+@keyframes rotateOrbit1 {
+  0% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg); }
+  100% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg); }
+}
+
+@keyframes rotateOrbit2 {
+  0% { transform: rotateX(50deg) rotateY(40deg) rotateZ(0deg); }
+  100% { transform: rotateX(50deg) rotateY(40deg) rotateZ(360deg); }
+}
+
+@keyframes rotateOrbit3 {
+  0% { transform: rotateX(-45deg) rotateY(60deg) rotateZ(0deg); }
+  100% { transform: rotateX(-45deg) rotateY(60deg) rotateZ(360deg); }
+}
+
+@keyframes pulseDot {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
