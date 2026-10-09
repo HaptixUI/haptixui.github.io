@@ -680,13 +680,12 @@ body {
 
 /* Action Buttons Row */
 .comp-actions-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  display: flex;
   margin-top: 2px;
 }
 
 .btn-get-code {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -694,7 +693,7 @@ body {
   background: #171b26;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 9px 14px;
   color: #ffffff;
   font-family: inherit;
   font-size: 13px;
@@ -706,34 +705,6 @@ body {
 .btn-get-code:hover {
   background: #1f2536;
   border-color: rgba(0, 168, 255, 0.4);
-}
-
-.btn-quick-copy {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: rgba(0, 168, 255, 0.1);
-  border: 1px solid rgba(0, 168, 255, 0.3);
-  border-radius: 10px;
-  padding: 8px 14px;
-  color: var(--accent-cyan);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-quick-copy:hover {
-  background: var(--accent-cyan);
-  color: #ffffff;
-}
-
-.btn-quick-copy.copied {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: var(--accent-emerald);
-  color: var(--accent-emerald);
 }
 
 /* --------------------------------------------------------------------------
