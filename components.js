@@ -351,13 +351,56 @@ const TRANSITIONS = {
 .heart-3d-container:active {
   cursor: grabbing;
 }`,
-    jsCode: `// Cardioid Parametric 3D Heart
+    jsCode: `// 1. Parametric 3D Heart Equation
 function heart(u) {
   const x = 1.6 * Math.pow(Math.sin(u), 3);
-  const y = 1.3 * Math.cos(u) - 0.5 * Math.cos(2*u) - 0.2 * Math.cos(3*u) - 0.1 * Math.cos(4*u);
+  const y = 1.3 * Math.cos(u)
+          - 0.5 * Math.cos(2 * u)
+          - 0.2 * Math.cos(3 * u)
+          - 0.1 * Math.cos(4 * u);
   return { x, y };
 }
 
-// 2,800 Points 3D Projection & 60 FPS Rotation Loop`
+// 2. Generate 3,000 Volumetric Points
+const points = [];
+for (let i = 0; i < 3000; i++) {
+  const u = Math.random() * Math.PI * 2;
+  const { x, y } = heart(u);
+  const rad = Math.sqrt(Math.random());
+  const z = 1.1 * (1 - rad) * (Math.random() * 2 - 1);
+  points.push({ x: x * rad, y: y * rad, z });
+}
+
+// 3. Real-Time 3D Rotation Matrix
+function rotate3D(x, y, z, theta) {
+  const xr = x * Math.cos(theta) + z * Math.sin(theta);
+  const zr = -x * Math.sin(theta) + z * Math.cos(theta);
+  return { xr, yr: y, zr };
+}
+
+// 4. Depth Sorting & Color Shading
+function getDepthColor(depth) {
+  const f = Math.max(0, Math.min(1, depth));
+  const r = Math.round(145 + 100 * f);
+  const g = Math.round(15 + 5 * f);
+  const b = Math.round(30 + 35 * f);
+  return \`rgb(\${r}, \${g}, \${b})\`;
+}
+
+// 5. 60 FPS Canvas Render Loop
+function render(time) {
+  ctx.clearRect(0, 0, width, height);
+  const theta = time * 0.002;
+
+  const projected = points.map(pt => rotate3D(pt.x, pt.y, pt.z, theta));
+  projected.sort((a, b) => a.zr - b.zr);
+
+  projected.forEach(({ xr, yr, zr }) => {
+    const depth = (zr + 1.1) / 2.2;
+    const px = cx + xr * scale;
+    const py = cy - yr * scale;
+    drawGlowPoint(px, py, depth);
+  });
+}`
   }
 ];
