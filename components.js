@@ -332,14 +332,15 @@ const TRANSITIONS = {
     badge: 'Canvas 3D',
     description: 'A 3D volumetric heart composed of 2,600 mathematical points plotted via cardioid parametric equations with pure continuous 360° rotation.',
     previewTag: '<heart-3d></heart-3d>',
-    htmlCode: `<!-- Custom Element -->
+    htmlCode: `<!-- Method 1: Web Component (Zero Setup) -->
 <heart-3d></heart-3d>
-
-<!-- Include Component Script & Styles -->
 <script type="module" src="components.js"></script>
-<link rel="stylesheet" href="components.css">`,
-    cssCode: `/* 3D Canvas Container */
-.heart-3d-container {
+<link rel="stylesheet" href="components.css">
+
+<!-- Method 2: Standalone HTML5 Canvas -->
+<!-- <canvas id="heartCanvas" width="600" height="600"></canvas> -->`,
+    cssCode: `/* 3D Heart Canvas Container */
+.heart-3d-container, #heartCanvas {
   position: relative;
   width: 100%;
   height: 220px;
@@ -347,11 +348,21 @@ const TRANSITIONS = {
   margin: 0 auto;
   cursor: grab;
   touch-action: none;
+  background: transparent;
 }
-.heart-3d-container:active {
+.heart-3d-container:active, #heartCanvas:active {
   cursor: grabbing;
 }`,
-    jsCode: `// 1. Parametric 3D Heart Equation
+    jsCode: `// 0. Canvas Setup
+const canvas = document.getElementById('heartCanvas') || document.querySelector('canvas');
+const ctx = canvas.getContext('2d');
+const width = canvas.width || 600;
+const height = canvas.height || 600;
+const cx = width / 2;
+const cy = height / 2;
+const scale = 140;
+
+// 1. Parametric 3D Heart Equation
 function heart(u) {
   const x = 1.6 * Math.pow(Math.sin(u), 3);
   const y = 1.3 * Math.cos(u)
@@ -387,8 +398,16 @@ function getDepthColor(depth) {
   return \`rgb(\${r}, \${g}, \${b})\`;
 }
 
+function drawGlowPoint(px, py, depth) {
+  const size = 1.2 + depth * 1.8;
+  ctx.fillStyle = getDepthColor(depth);
+  ctx.beginPath();
+  ctx.arc(px, py, size, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 // 5. 60 FPS Canvas Render Loop
-function render(time) {
+function render(time = 0) {
   ctx.clearRect(0, 0, width, height);
   const theta = time * 0.002;
 
@@ -401,6 +420,9 @@ function render(time) {
     const py = cy - yr * scale;
     drawGlowPoint(px, py, depth);
   });
-}`
+
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);`
   }
 ];
