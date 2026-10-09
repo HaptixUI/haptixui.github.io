@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Love Strings - String Confession | HaptixUI</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: #eeebcf;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: 'Rubik', -apple-system, sans-serif;
+      user-select: none;
+    }
+    .header-bar {
+      position: absolute;
+      top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+    }
+    .badge {
+      background: #111422;
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge:hover {
+      background: #fc0843;
+    }
+    canvas {
+      display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+    canvas:active {
+      cursor: grabbing;
+    }
+    #container {
+      box-shadow: 0 10px 40px rgba(0,0,0,.1);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 16px;
+      background: #eeebcf;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      overflow: hidden;
+    }
+    .hint {
+      position: absolute;
+      bottom: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #fc0843;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid rgba(252, 8, 67, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <a href="index.html?id=string-confession" class="badge">
+      <span>⚡ HaptixUI Component</span>
+      <span>•</span>
+      <span>Get Code ➔</span>
+    </a>
+  </div>
+
+  <div id="container">
+    <div class="hint">✨ DRAG OR SWIPE ACROSS STRINGS ✨</div>
+  </div>
+
+  <script type="module">
+    function getPointID(row, col, totalRows) {
+      return col * totalRows + row;
+    }
+
+    function smoothstep(min, max, value) {
+      const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+      return x * x * (3 - 2 * x);
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+
+    let fullCode = `
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+I Love You My Sweetheart
+`.repeat(2);
+
+    const w = Math.min(420, window.innerWidth - 40);
+    const h = Math.min(440, window.innerHeight - 100);
+
+    const CONFIG = {
+      awidth: w,
+      aheight: h,
+      gridW: Math.min(40, Math.floor(w / 12)),
+      gridH: Math.min(42, Math.floor(h / 11)),
+      gravity: 0.22,
+      damping: 0.99,
+      iterationsPerFrame: 5,
+      compressFactor: 0.02,
+      stretchFactor: 1.12,
+      mouseSize: 5500,
+      mouseStrength: 4.5
+    };
+    CONFIG.cellWidth = CONFIG.awidth / (CONFIG.gridW - 1);
+    CONFIG.cellHeight = CONFIG.aheight / (CONFIG.gridH - 1);
+
+    const container = document.getElementById('container');
+    let rafID, input, c;
+
+    class Vec2 {
+      constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+      reset(x, y) { this.x = x; this.y = y; return this; }
+      add(v) { this.x += v.x; this.y += v.y; return this; }
+      subtract(v) { this.x -= v.x; this.y -= v.y; return this; }
+      subtractNew(v) { return new Vec2(this.x - v.x, this.y - v.y); }
+      get lengthSquared() { return this.x * this.x + this.y * this.y; }
+      get angle() { return Math.atan2(this.y, this.x); }
+    }
+
+    class Particle {
+      constructor({ x, y, pinned, id, char } = {}) {
+        this.pos = new Vec2(x, y);
+        this.oldPos = new Vec2(x, y);
+        this.velocity = new Vec2();
+        this.acceleration = new Vec2();
+        this.pinned = pinned;
+        this.id = id;
+        this.char = char;
+      }
+      update() {
+        if (this.pinned) { this.acceleration.x = 0; this.acceleration.y = 0; return; }
+        this.velocity.reset(
+          (this.pos.x - this.oldPos.x) * CONFIG.damping,
+          (this.pos.y - this.oldPos.y) * CONFIG.damping
+        );
+        this.oldPos.reset(this.pos.x, this.pos.y);
+        this.pos.x += this.velocity.x + this.acceleration.x;
+        this.pos.y += this.velocity.y + this.acceleration.y + CONFIG.gravity;
+        this.acceleration.reset(0, 0);
+      }
+      applyForce(v) { this.acceleration.add(v); }
+    }
+
+    class Constraint {
+      constructor({ p1, p2, length, id, compressFactor, stretchFactor, isSpacer }) {
+        this.p1 = p1;
+        this.p2 = p2;
+        this.length = length;
+        this.id = id;
+        this.isSpacer = isSpacer;
+        this.minLength = length * compressFactor;
+        this.maxLength = length * stretchFactor;
+      }
+      solve() {
+        const dx = this.p2.pos.x - this.p1.pos.x;
+        const dy = this.p2.pos.y - this.p1.pos.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance === 0) return;
+
+        let targetLength = this.length;
+        if (distance < this.minLength) targetLength = this.minLength;
+        else if (distance > this.maxLength) targetLength = this.maxLength;
+        else return;
+
+        const diff = (targetLength - distance) / distance * 0.5;
+        const offsetX = dx * diff;
+        const offsetY = dy * diff;
+
+        if (!this.p1.pinned) { this.p1.pos.x -= offsetX; this.p1.pos.y -= offsetY; }
+        if (!this.p2.pinned) { this.p2.pos.x += offsetX; this.p2.pos.y += offsetY; }
+      }
+    }
+
+    class Input {
+      constructor({ c, particles }) {
+        this.c = c; this.particles = particles;
+        this.mousePos = new Vec2(-1000, -1000);
+        this.grabRadius = 24;
+        this.grabbedParticle = null;
+        this.bind();
+      }
+      updatePos(e) {
+        const rect = this.c.getBoundingClientRect();
+        this.mousePos.x = (e.clientX - rect.left) * (CONFIG.awidth / rect.width);
+        this.mousePos.y = (e.clientY - rect.top) * (CONFIG.aheight / rect.height);
+      }
+      pointerdown(e) {
+        this.c.setPointerCapture(e.pointerId);
+        this.updatePos(e);
+        for (const p of this.particles) {
+          if (this.mousePos.subtractNew(p.pos).lengthSquared < this.grabRadius ** 2) {
+            this.grabbedParticle = p;
+            this.grabbedParticle.originalPinnedState = this.grabbedParticle.pinned;
+            this.grabbedParticle.pinned = true;
+            break;
+          }
+        }
+      }
+      pointerup() {
+        if (this.grabbedParticle) {
+          this.grabbedParticle.pinned = this.grabbedParticle.originalPinnedState;
+          this.grabbedParticle = null;
+        }
+        this.mousePos.reset(-1000, -1000);
+      }
+      pointermove(e) {
+        this.updatePos(e);
+        if (this.grabbedParticle) {
+          this.grabbedParticle.pos.reset(this.mousePos.x, this.mousePos.y);
+          this.grabbedParticle.oldPos.reset(this.mousePos.x, this.mousePos.y);
+        }
+        for (const p of this.particles) {
+          const diff = this.mousePos.subtractNew(p.pos);
+          const ls = diff.lengthSquared;
+          if (ls < CONFIG.mouseSize) {
+            const a = diff.angle - Math.PI;
+            const strength = smoothstep(CONFIG.mouseSize, -2000, ls) * CONFIG.mouseStrength / 300;
+            p.applyForce(new Vec2(Math.cos(a) * strength, Math.sin(a) * strength));
+          }
+        }
+      }
+      bind() {
+        this.pointerdown = this.pointerdown.bind(this);
+        this.pointerup = this.pointerup.bind(this);
+        this.pointermove = this.pointermove.bind(this);
+        this.c.addEventListener('pointerdown', this.pointerdown);
+        window.addEventListener('pointerup', this.pointerup);
+        this.c.addEventListener('pointermove', this.pointermove);
+      }
+    }
+
+    function main() {
+      const { awidth: width, aheight: height, gridW, gridH, iterationsPerFrame, compressFactor, stretchFactor, cellWidth, cellHeight } = CONFIG;
+
+      const charCanvases = {};
+      const fontSize = Math.max(11, cellHeight * 1.15);
+      const boxSize = Math.ceil(fontSize * 1.4);
+
+      for (const ch of new Set(fullCode)) {
+        if (ch === ' ' || ch === '\n') continue;
+        const off = document.createElement('canvas');
+        off.width = boxSize * dpr;
+        off.height = boxSize * dpr;
+        const octx = off.getContext('2d');
+        octx.scale(dpr, dpr);
+        octx.font = `bold ${fontSize}px monospace`;
+        octx.textAlign = 'center';
+        octx.textBaseline = 'middle';
+        octx.fillStyle = '#fc0843';
+        octx.fillText(ch, boxSize / 2, boxSize / 2);
+        charCanvases[ch] = off;
+        charCanvases[ch].logicalSize = boxSize;
+      }
+
+      c = document.createElement('canvas');
+      container.appendChild(c);
+      c.width = width * dpr;
+      c.height = height * dpr;
+      c.style.width = width + 'px';
+      c.style.height = height + 'px';
+
+      const ctx = c.getContext('2d');
+      const particles = [];
+      const constraints = [];
+
+      input = new Input({ c, particles });
+
+      for (let i = 0; i < gridW; i++) {
+        for (let j = 0; j < gridH; j++) {
+          const x = i * cellWidth;
+          const y = j * cellHeight;
+          const id = getPointID(j, i, gridH);
+          const pinned = j === 0;
+          const charIndex = (i + j * gridW) % fullCode.length;
+          const char = fullCode[charIndex] || ' ';
+          particles.push(new Particle({ x, y, pinned, id, char }));
+        }
+      }
+
+      for (let i = 0; i < gridW; i++) {
+        for (let j = 0; j < gridH; j++) {
+          const id = getPointID(j, i, gridH);
+          const p = particles[id];
+          if (j < gridH - 1) {
+            const bottomP = particles[getPointID(j + 1, i, gridH)];
+            const con = new Constraint({ p1: p, p2: bottomP, length: cellHeight, id: id + gridW * gridH, compressFactor, stretchFactor });
+            constraints.push(con);
+            p.downConstraint = con;
+          }
+          if (i < gridW - 1) {
+            const rightP = particles[getPointID(j, i + 1, gridH)];
+            const hc = new Constraint({
+              p1: p, p2: rightP, length: cellWidth,
+              id: id + gridW * gridH * 2, compressFactor: 0.6, stretchFactor: 4, isSpacer: true
+            });
+            constraints.push(hc);
+          }
+        }
+      }
+
+      function drawCode() {
+        particles.forEach(p => {
+          if (p.char && p.char !== ' ' && p.char !== '\n') {
+            const con = p.downConstraint;
+            let angle = 0;
+            const img = charCanvases[p.char];
+            if (!img) return;
+            const logicalSize = img.logicalSize;
+            const half = logicalSize / 2;
+
+            let cos = 1, sin = 0;
+            if (con) {
+              const dx = con.p2.pos.x - con.p1.pos.x;
+              const dy = con.p2.pos.y - con.p1.pos.y;
+              angle = Math.atan2(dy, dx) - Math.PI / 2;
+              cos = Math.cos(angle);
+              sin = Math.sin(angle);
+            }
+
+            ctx.setTransform(
+              cos * dpr, sin * dpr,
+              -sin * dpr, cos * dpr,
+              p.pos.x * dpr, p.pos.y * dpr
+            );
+            ctx.drawImage(img, -half, -half, logicalSize, logicalSize);
+          }
+        });
+      }
+
+      function runloop() {
+        rafID = requestAnimationFrame(runloop);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        particles.forEach(p => p.update());
+        for (let i = 0; i < iterationsPerFrame; i++) {
+          constraints.forEach(con => con.solve());
+        }
+        drawCode();
+      }
+      runloop();
+    }
+
+    setTimeout(main, 50);
+  </script>
+</body>
+</html>
