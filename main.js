@@ -211,8 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sort
     if (activeSort === 'name') {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (activeSort === 'views') {
-      filtered.sort((a, b) => parseFloat(b.views || '0') - parseFloat(a.views || '0'));
     }
 
     // Update count badge
@@ -222,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #64748b; background: #0c0e15; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.1);">
           <p style="font-size: 18px; color: #ffffff; margin-bottom: 8px;">No elements found for "${searchQuery}"</p>
-          <p style="font-size: 14px; margin-bottom: 16px;">Try searching for "button", "toggle", "card", or reset filters.</p>
+          <p style="font-size: 14px; margin-bottom: 16px;">Try searching for "button", "interactive", or reset filters.</p>
           <button id="resetSearchBtn" style="background: rgba(0, 168, 255, 0.15); border: 1px solid #00a8ff; color: #00a8ff; padding: 7px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">Reset Search</button>
         </div>
       `;
@@ -265,24 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="comp-badge">${comp.badge}</span>
           </div>
 
-          <div class="comp-stats-row">
-            <div class="comp-stats-left">
-              <span class="stat-item">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                ${comp.views || '24.5K'}
-              </span>
-              <span class="stat-item">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-                ${comp.likes || '2.1K'}
-              </span>
-            </div>
-            <span style="font-size: 11px; color: #64748b;">${comp.category}</span>
-          </div>
+          <p class="comp-desc">${comp.description}</p>
 
           <div class="comp-actions-row">
             <button class="btn-get-code inspect-btn" data-id="${comp.id}">
