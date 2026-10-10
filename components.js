@@ -827,16 +827,16 @@ class PeriodicTable3D extends HTMLElement {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = rect.width || 320;
       height = rect.height || 220;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      setModeTargets(currentMode);
     };
 
     this._ro = new ResizeObserver(() => updateSize());
     this._ro.observe(container);
-    updateSize();
 
     // Elements data & state
     const N = ELEMENTS.length;
@@ -854,28 +854,35 @@ class PeriodicTable3D extends HTMLElement {
 
     const setModeTargets = (mode) => {
       currentMode = mode;
+      if (mode === 'table') {
+        rotY = 0;
+        rotX = 0;
+      }
       items.forEach((item, i) => {
         const el = item.el;
         if (mode === 'sphere') {
-          const r = 85;
+          const r = Math.min(width, height) * 0.38;
           const phi = Math.acos(-1 + (2 * i) / N);
           const theta = Math.sqrt(N * Math.PI) * phi;
           item.tgtX = r * Math.sin(phi) * Math.sin(theta);
           item.tgtY = -r * Math.cos(phi);
           item.tgtZ = r * Math.sin(phi) * Math.cos(theta);
         } else if (mode === 'helix') {
-          const r = 78;
+          const r = Math.min(width, height) * 0.35;
           const theta = i * 0.175 + Math.PI;
-          const y = -(i * 1.5) + 85;
+          const y = -(i * 1.5) + (N * 1.5) / 2;
           item.tgtX = r * Math.sin(theta);
           item.tgtY = y;
           item.tgtZ = r * Math.cos(theta);
         } else if (mode === 'table') {
-          item.tgtX = (el.group - 9.5) * 12.5;
-          item.tgtY = (el.period - 5) * 16.5;
+          // 18 columns, periods 1 to 9.8. Responsive spacing so 18 columns fit perfectly
+          const spacingX = Math.min(16.5, Math.max(10, (width - 32) / 19));
+          const spacingY = Math.min(19.5, Math.max(12, (height - 52) / 11));
+          item.tgtX = (el.group - 9.5) * spacingX;
+          item.tgtY = (el.period - 4.8) * spacingY;
           item.tgtZ = 0;
         } else if (mode === 'grid') {
-          const s = 24;
+          const s = Math.min(26, Math.max(18, Math.min(width, height) * 0.11));
           const gx = (i % 5) - 2;
           const gy = (Math.floor(i / 5) % 5) - 2;
           const gz = Math.floor(i / 25) - 2;
@@ -885,7 +892,7 @@ class PeriodicTable3D extends HTMLElement {
         }
       });
     };
-    setModeTargets('sphere');
+    updateSize();
 
     modeBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -928,16 +935,26 @@ class PeriodicTable3D extends HTMLElement {
       if (!this.isConnected) return;
       ctx.clearRect(0, 0, width, height);
 
+      const isLight = container.closest('.stage-light') !== null;
+
       if (!isDragging) {
         velY *= 0.94;
         velX *= 0.94;
-        rotY += 0.012 + velY;
-        rotX += velX;
-        rotX += (0.15 - rotX) * 0.02;
+        if (currentMode === 'table') {
+          // Table mode smoothly aligns frontally so all 18 columns remain legible
+          rotY += velY;
+          rotX += velX;
+          rotY += (0 - rotY) * 0.08;
+          rotX += (0 - rotX) * 0.08;
+        } else {
+          rotY += 0.012 + velY;
+          rotX += velX;
+          rotX += (0.15 - rotX) * 0.02;
+        }
       }
 
       const cx = width / 2;
-      const cy = height / 2 + 8;
+      const cy = height / 2 - 12; // breathing space above bottom toolbar
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
       const fov = 340;
@@ -971,14 +988,19 @@ class PeriodicTable3D extends HTMLElement {
       queue.sort((a, b) => a.z - b.z);
 
       const qLen = queue.length;
+      const cardW = (currentMode === 'table' ? 12.5 : 15);
+      const cardH = (currentMode === 'table' ? 15 : 18);
+
       for (let i = 0; i < qLen; i++) {
         const p = queue[i];
         const alpha = Math.max(0.2, Math.min(1.0, (p.z + 140) / 240));
-        const w = 15 * p.scale;
-        const h = 18 * p.scale;
+        const w = cardW * p.scale;
+        const h = cardH * p.scale;
 
-        // Card body
-        ctx.fillStyle = `rgba(13, 19, 34, ${0.85 * alpha})`;
+        // Card body adapts to light or dark stage
+        ctx.fillStyle = isLight 
+          ? `rgba(255, 255, 255, ${0.94 * alpha})`
+          : `rgba(13, 19, 34, ${0.85 * alpha})`;
         ctx.strokeStyle = p.color;
         ctx.lineWidth = Math.max(0.8, 1.2 * p.scale);
         ctx.globalAlpha = alpha;
@@ -989,9 +1011,9 @@ class PeriodicTable3D extends HTMLElement {
         ctx.stroke();
 
         // Symbol
-        if (p.scale > 0.6) {
+        if (p.scale > 0.48) {
           ctx.fillStyle = p.color;
-          ctx.font = `bold ${Math.round(7.5 * p.scale)}px sans-serif`;
+          ctx.font = `bold ${Math.round((currentMode === 'table' ? 6.8 : 7.5) * p.scale)}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(p.sym, p.px, p.py + 0.5);
