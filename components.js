@@ -822,22 +822,6 @@ class PeriodicTable3D extends HTMLElement {
     let lastX = 0, lastY = 0;
     let currentMode = 'sphere';
 
-    const updateSize = () => {
-      const rect = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = rect.width || 320;
-      height = rect.height || 220;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      setModeTargets(currentMode);
-    };
-
-    this._ro = new ResizeObserver(() => updateSize());
-    this._ro.observe(container);
-
     // Elements data & state
     const N = ELEMENTS.length;
     const items = ELEMENTS.map((el, i) => {
@@ -892,7 +876,23 @@ class PeriodicTable3D extends HTMLElement {
         }
       });
     };
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      setModeTargets(currentMode);
+    };
+
     updateSize();
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
 
     modeBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
