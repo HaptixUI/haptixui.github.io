@@ -265,3 +265,89 @@
   max-width: 480px;
 }
 
+/* --------------------------------------------------------------------------
+   COMPONENT 6: 3D INTERACTIVE PERIODIC TABLE
+   -------------------------------------------------------------------------- */
+.ptable-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  background: #07090e;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.ptable-wrap:active {
+  cursor: grabbing;
+}
+.ptable-toolbar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: auto;
+}
+.ptable-modes {
+  display: inline-flex;
+  gap: 3px;
+  background: rgba(12, 17, 29, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 2px;
+}
+.pt-btn {
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.pt-btn:hover {
+  color: #ffffff;
+}
+.pt-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+}
+.pt-lab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+.pt-lab-link:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #ffffff;
+}
+.ptable-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.modal-preview-stage .ptable-wrap {
+  height: 340px;
+  max-width: 480px;
+}
+
+
