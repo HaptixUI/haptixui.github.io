@@ -631,6 +631,17 @@ body {
   color: #ffffff;
 }
 
+.comp-stage.stage-light .stage-theme-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1e293b;
+}
+
+.comp-stage.stage-light .stage-theme-btn:hover {
+  background: rgba(0, 0, 0, 0.14);
+  color: #000000;
+}
+
 /* Card Body & Details */
 .comp-body {
   padding: 16px;
@@ -846,6 +857,22 @@ body {
   padding: 6px;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stage-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.modal-preview-pane.stage-light .stage-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1e293b;
+}
+
+.modal-preview-pane.stage-light .stage-btn:hover {
+  background: rgba(0, 0, 0, 0.14);
+  color: #000000;
 }
 
 .modal-code-pane {
