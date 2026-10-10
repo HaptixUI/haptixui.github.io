@@ -268,6 +268,252 @@ class Heart3D extends HTMLElement {
 customElements.define('heart-3d', Heart3D);
 
 /* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <sakura-tree>
+   Recursive Blooming Sakura Cherry Blossom Fractal Tree (Sequential 10s Turtle Growth)
+   -------------------------------------------------------------------------- */
+class SakuraTree extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="sakura-tree-container" title="Click to re-bloom branch-by-branch!">
+        <canvas class="sakura-tree-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.sakura-tree-container');
+    const canvas = this.querySelector('.sakura-tree-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 320, height = 220;
+    let branches = [];
+    let nodes = [];
+    const TOTAL_GROWTH_TIME = 20.0; // 20 seconds calm sequential growth
+    let growthStartTime = performance.now();
+    let windTime = 0;
+
+    const buildTree = () => {
+      branches = [];
+      nodes = [];
+      const startX = width / 2;
+      const startY = height - 16;
+      // Proportional bounds: guarantees at least 15-20% margin on all 4 sides with zero clipping!
+      const trunkLen = Math.min(width * 0.74 / 5.25, height * 0.80 / 4.35);
+      const cutoff = trunkLen * 0.15;
+      const fSize = Math.max(3.2, trunkLen * 0.065);
+      const nSize = Math.max(1.6, trunkLen * 0.032);
+
+      const trace = (x, y, angle, len, depth) => {
+        if (len < cutoff || depth === 0) {
+          nodes.push({
+            branchIndex: branches.length - 1,
+            x: x,
+            y: y,
+            isLeaf: true,
+            size: fSize
+          });
+          return;
+        }
+
+        const rad = angle * Math.PI / 180;
+        const x2 = x + len * Math.sin(rad);
+        const y2 = y - len * Math.cos(rad);
+        const branchIdx = branches.length;
+
+        branches.push({
+          x1: x,
+          y1: y,
+          x2: x2,
+          y2: y2,
+          len: len,
+          depth: depth,
+          angle: angle,
+          thickness: Math.max(1.1, (depth + 1) * (trunkLen / 45) * 0.95)
+        });
+
+        nodes.push({
+          branchIndex: branchIdx,
+          x: x2,
+          y: y2,
+          isLeaf: false,
+          size: nSize
+        });
+
+        // Exact Turtle recursion (left 20 deg, right 20 deg)
+        trace(x2, y2, angle - 20, len * 0.8, depth - 1);
+        trace(x2, y2, angle + 20, len * 0.8, depth - 1);
+      };
+
+      trace(startX, startY, 0, trunkLen, 8);
+
+      const branchDuration = TOTAL_GROWTH_TIME / branches.length;
+      for (let i = 0; i < branches.length; i++) {
+        branches[i].startTime = i * branchDuration;
+        branches[i].endTime = (i + 1) * branchDuration;
+      }
+    };
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildTree();
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // Restart 10s sequential growth on click
+    container.addEventListener('click', () => {
+      growthStartTime = performance.now();
+    });
+
+    const petals = [];
+    for (let i = 0; i < 28; i++) {
+      petals.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5 + 0.4,
+        vy: Math.random() * 0.6 + 0.5,
+        size: Math.random() * 3 + 2,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.04,
+        alpha: Math.random() * 0.5 + 0.4
+      });
+    }
+
+    const drawBlossom = (x, y, size) => {
+      const colors = ['#ff7597', '#ffa3b8', '#ffccd7', '#fff0f3'];
+      ctx.save();
+      ctx.translate(x, y);
+      for (let i = 0; i < 5; i++) {
+        const a = (i * Math.PI * 2) / 5;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * size * 0.65, Math.sin(a) * size * 0.65, size * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      const elapsed = (performance.now() - growthStartTime) / 1000;
+      const currentTime = Math.min(elapsed, TOTAL_GROWTH_TIME);
+      windTime += 0.02;
+
+      let activeBranch = null;
+
+      // Draw branches strictly in sequential order
+      for (let i = 0; i < branches.length; i++) {
+        const b = branches[i];
+        if (currentTime < b.startTime) break; // Future branch, wait turn
+
+        ctx.lineCap = 'round';
+        ctx.lineWidth = b.thickness;
+        ctx.strokeStyle = b.depth > 3 ? '#6d4427' : (b.depth > 1 ? '#8c5835' : '#a76d43');
+
+        if (currentTime >= b.endTime) {
+          ctx.beginPath();
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(b.x2, b.y2);
+          ctx.stroke();
+        } else {
+          // Current branch growing smoothly from start to tip
+          const branchDur = b.endTime - b.startTime;
+          const prog = (currentTime - b.startTime) / branchDur;
+          const curX = b.x1 + (b.x2 - b.x1) * prog;
+          const curY = b.y1 + (b.y2 - b.y1) * prog;
+
+          ctx.beginPath();
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(curX, curY);
+          ctx.stroke();
+
+          activeBranch = { x: curX, y: curY, angle: b.angle };
+          break; // Sequential: only one branch grows at a time
+        }
+      }
+
+      // Draw blossom nodes as branches complete
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        const b = branches[n.branchIndex];
+        if (!b || currentTime < b.endTime) continue;
+
+        if (n.isLeaf) {
+          drawBlossom(n.x, n.y, n.size);
+        } else {
+          ctx.fillStyle = 'rgba(255, 140, 170, 0.85)';
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Glowing active pen tip during growth
+      if (activeBranch && currentTime < TOTAL_GROWTH_TIME) {
+        ctx.save();
+        ctx.translate(activeBranch.x, activeBranch.y);
+        ctx.fillStyle = '#ff3b69';
+        ctx.shadowColor = 'rgba(255, 59, 105, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Falling drifting petals when mature or late in growth
+      if (currentTime > 6.0) {
+        const petalAlpha = Math.min(1.0, (currentTime - 6.0) / 6.0);
+        petals.forEach(p => {
+          p.x += p.vx + Math.sin(windTime + p.y * 0.01) * 0.4;
+          p.y += p.vy;
+          p.rot += p.vRot;
+
+          if (p.y > height + 8) {
+            p.y = -6;
+            p.x = Math.random() * width;
+          }
+          if (p.x > width + 8) p.x = -6;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = `rgba(255, 125, 160, ${p.alpha * petalAlpha})`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size * 0.5, p.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
+  }
+}
+customElements.define('sakura-tree', SakuraTree);
+
+/* --------------------------------------------------------------------------
    COMPONENTS REGISTRY FOR HAPTIXUI
    -------------------------------------------------------------------------- */
 export const COMPONENTS_REGISTRY = [
@@ -421,6 +667,71 @@ function render(time = 0) {
     drawGlowPoint(px, py, depth);
   });
 
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);`
+  },
+  {
+    id: 'sakura-tree',
+    name: 'Sakura Fractal Tree',
+    category: 'Interactive',
+    badge: 'Generative Canvas',
+    description: 'An organic recursive fractal tree blooming with soft cherry blossom petals and falling sakura breezes at 60 FPS.',
+    previewTag: '<sakura-tree></sakura-tree>',
+    htmlCode: `<!-- Custom Element -->
+<sakura-tree></sakura-tree>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* Sakura Tree Stage */
+.sakura-tree-container {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+}
+.sakura-tree-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}`,
+    jsCode: `// 1. Recursive Fractal Branching
+function drawBranch(x, y, len, angle, depth) {
+  if (depth === 0) {
+    drawBlossoms(x, y);
+    return;
+  }
+  const x2 = x + len * Math.sin(angle);
+  const y2 = y - len * Math.cos(angle);
+
+  ctx.lineWidth = Math.max(1, depth * 1.4);
+  ctx.strokeStyle = getBarkColor(depth);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+
+  // Recursive bifurcations
+  drawBranch(x2, y2, len * 0.78, angle - 0.36, depth - 1);
+  drawBranch(x2, y2, len * 0.78, angle + 0.36, depth - 1);
+}
+
+// 2. Sakura Petal Blossom Clusters
+function drawBlossoms(x, y) {
+  ctx.fillStyle = '#ff7597';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(x, y - 4, 3, 5, (i * Math.PI * 2) / 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// 3. 60 FPS Breeze Sway Loop
+function render() {
+  ctx.clearRect(0, 0, width, height);
+  drawBranch(width / 2, height - 20, 110, 0, 8);
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);`
