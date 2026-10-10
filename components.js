@@ -583,7 +583,7 @@ class DNAHelix extends HTMLElement {
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
       velY = dx * 0.009;
-      velX = dy * 0.009;
+      velX = -dy * 0.009; // Natural tactile pitch: dragging up tilts upward, dragging down tilts downward
       rotY += velY;
       rotX += velX;
       rotX = Math.max(-0.6, Math.min(0.6, rotX));
