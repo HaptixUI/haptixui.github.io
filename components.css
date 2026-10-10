@@ -231,3 +231,37 @@
   height: 340px;
   max-width: 480px;
 }
+
+/* --------------------------------------------------------------------------
+   COMPONENT 5: 3D DNA DOUBLE HELIX
+   -------------------------------------------------------------------------- */
+.dna-helix-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.dna-helix-container:active {
+  cursor: grabbing;
+}
+
+.dna-helix-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.modal-preview-stage .dna-helix-container {
+  height: 340px;
+  max-width: 480px;
+}
+
