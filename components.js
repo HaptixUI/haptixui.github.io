@@ -4,6 +4,7 @@
  */
 
 import './download-button.js';
+import { ELEMENTS, CATEGORIES } from './periodic_data.js';
 
 /* --------------------------------------------------------------------------
    CUSTOM ELEMENT: <cart-button>
@@ -786,6 +787,232 @@ class DNAHelix extends HTMLElement {
 customElements.define('dna-helix', DNAHelix);
 
 /* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <periodic-table-3d>
+   Interactive 3D Periodic Table with Sphere, Helix, Grid, and Table Morphing
+   -------------------------------------------------------------------------- */
+class PeriodicTable3D extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="ptable-wrap" title="Drag to rotate in 3D! Click modes to switch shape.">
+        <div class="ptable-toolbar">
+          <div class="ptable-modes">
+            <button class="pt-btn active" data-mode="sphere">Sphere</button>
+            <button class="pt-btn" data-mode="helix">Helix</button>
+            <button class="pt-btn" data-mode="table">Table</button>
+            <button class="pt-btn" data-mode="grid">Grid</button>
+          </div>
+          <a href="periodic_table.html" target="_blank" class="pt-lab-link" title="Open Full Screen Lab">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Lab ↗
+          </a>
+        </div>
+        <canvas class="ptable-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.ptable-wrap');
+    const canvas = this.querySelector('.ptable-canvas');
+    const ctx = canvas.getContext('2d');
+    const modeBtns = this.querySelectorAll('.pt-btn');
+
+    let width = 320, height = 220;
+    let rotY = 0, rotX = 0.15;
+    let velY = 0, velX = 0;
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+    let currentMode = 'sphere';
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // Elements data & state
+    const N = ELEMENTS.length;
+    const items = ELEMENTS.map((el, i) => {
+      const cat = CATEGORIES[el.category] || { color: '#38bdf8' };
+      return {
+        el,
+        color: cat.color,
+        curX: (Math.random() - 0.5) * 200,
+        curY: (Math.random() - 0.5) * 200,
+        curZ: (Math.random() - 0.5) * 200,
+        tgtX: 0, tgtY: 0, tgtZ: 0
+      };
+    });
+
+    const setModeTargets = (mode) => {
+      currentMode = mode;
+      items.forEach((item, i) => {
+        const el = item.el;
+        if (mode === 'sphere') {
+          const r = 85;
+          const phi = Math.acos(-1 + (2 * i) / N);
+          const theta = Math.sqrt(N * Math.PI) * phi;
+          item.tgtX = r * Math.sin(phi) * Math.sin(theta);
+          item.tgtY = -r * Math.cos(phi);
+          item.tgtZ = r * Math.sin(phi) * Math.cos(theta);
+        } else if (mode === 'helix') {
+          const r = 78;
+          const theta = i * 0.175 + Math.PI;
+          const y = -(i * 1.5) + 85;
+          item.tgtX = r * Math.sin(theta);
+          item.tgtY = y;
+          item.tgtZ = r * Math.cos(theta);
+        } else if (mode === 'table') {
+          item.tgtX = (el.group - 9.5) * 12.5;
+          item.tgtY = (el.period - 5) * 16.5;
+          item.tgtZ = 0;
+        } else if (mode === 'grid') {
+          const s = 24;
+          const gx = (i % 5) - 2;
+          const gy = (Math.floor(i / 5) % 5) - 2;
+          const gz = Math.floor(i / 25) - 2;
+          item.tgtX = gx * s;
+          item.tgtY = -gy * s;
+          item.tgtZ = gz * s;
+        }
+      });
+    };
+    setModeTargets('sphere');
+
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        setModeTargets(btn.dataset.mode);
+      });
+    });
+
+    // Pointer Drag (Natural Trackball Physics)
+    container.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.ptable-toolbar')) return;
+      isDragging = true;
+      velY = 0;
+      velX = 0;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      container.setPointerCapture(e.pointerId);
+    });
+
+    container.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      velY = dx * 0.01;
+      velX = -dy * 0.01; // Up drags up, Down drags down
+      rotY += velY;
+      rotX += velX;
+      rotX = Math.max(-0.65, Math.min(0.65, rotX));
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    const stop = () => { isDragging = false; };
+    container.addEventListener('pointerup', stop);
+    container.addEventListener('pointercancel', stop);
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!isDragging) {
+        velY *= 0.94;
+        velX *= 0.94;
+        rotY += 0.012 + velY;
+        rotX += velX;
+        rotX += (0.15 - rotX) * 0.02;
+      }
+
+      const cx = width / 2;
+      const cy = height / 2 + 8;
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+      const fov = 340;
+
+      const queue = [];
+      const ease = 0.085;
+
+      for (let i = 0; i < N; i++) {
+        const item = items[i];
+        item.curX += (item.tgtX - item.curX) * ease;
+        item.curY += (item.tgtY - item.curY) * ease;
+        item.curZ += (item.tgtZ - item.curZ) * ease;
+
+        const x1 = item.curX * cosY + item.curZ * sinY;
+        const z1 = -item.curX * sinY + item.curZ * cosY;
+        const y2 = item.curY * cosX - z1 * sinX;
+        const z2 = item.curY * sinX + z1 * cosX;
+
+        const scale = fov / (fov + z2 + 100);
+        const px = cx + x1 * scale;
+        const py = cy + y2 * scale;
+
+        queue.push({
+          px, py, z: z2, scale,
+          color: item.color,
+          sym: item.el.symbol,
+          num: item.el.number
+        });
+      }
+
+      queue.sort((a, b) => a.z - b.z);
+
+      const qLen = queue.length;
+      for (let i = 0; i < qLen; i++) {
+        const p = queue[i];
+        const alpha = Math.max(0.2, Math.min(1.0, (p.z + 140) / 240));
+        const w = 15 * p.scale;
+        const h = 18 * p.scale;
+
+        // Card body
+        ctx.fillStyle = `rgba(13, 19, 34, ${0.85 * alpha})`;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = Math.max(0.8, 1.2 * p.scale);
+        ctx.globalAlpha = alpha;
+
+        ctx.beginPath();
+        ctx.roundRect(p.px - w / 2, p.py - h / 2, w, h, 2.5 * p.scale);
+        ctx.fill();
+        ctx.stroke();
+
+        // Symbol
+        if (p.scale > 0.6) {
+          ctx.fillStyle = p.color;
+          ctx.font = `bold ${Math.round(7.5 * p.scale)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.sym, p.px, p.py + 0.5);
+        }
+      }
+      ctx.globalAlpha = 1.0;
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
+  }
+}
+customElements.define('periodic-table-3d', PeriodicTable3D);
+
+/* --------------------------------------------------------------------------
    COMPONENTS REGISTRY FOR HAPTIXUI
    -------------------------------------------------------------------------- */
 export const COMPONENTS_REGISTRY = [
@@ -1059,5 +1286,41 @@ function project(x, y, z) {
   const scale = 420 / (420 + zr);
   return { px: cx + xr * scale, py: cy + yr * scale, z: zr };
 }`
+  },
+  {
+    id: 'periodic-table-3d',
+    name: '3D Interactive Periodic Table',
+    category: 'Interactive',
+    badge: '3D CSS Preserved',
+    description: 'All 118 chemical elements in interactive 3D space with smooth real-time switching between Sphere, Helix, Table, and 3D Grid layouts.',
+    previewTag: '<periodic-table-3d></periodic-table-3d>',
+    htmlCode: `<!-- Custom Element (Zero Config) -->
+<periodic-table-3d></periodic-table-3d>
+
+<!-- Full Standalone Experience: periodic_table.html -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* 3D Periodic Table Container */
+.ptable-wrap {
+  width: 100%;
+  height: 220px;
+  background: #07090e;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}`,
+    jsCode: `// 1. Fibonacci Spherical Distribution
+const phi = Math.acos(-1 + (2 * i) / N);
+const theta = Math.sqrt(N * Math.PI) * phi;
+x = radius * Math.sin(phi) * Math.sin(theta);
+y = -radius * Math.cos(phi);
+z = radius * Math.sin(phi) * Math.cos(theta);
+
+// 2. Smooth Layout Spring Interpolation
+cur.x += (target.x - cur.x) * 0.085;
+cur.y += (target.y - cur.y) * 0.085;
+cur.z += (target.z - cur.z) * 0.085;`
   }
 ];
