@@ -1313,7 +1313,7 @@ function project(x, y, z) {
     id: 'periodic-table-3d',
     name: '3D Interactive Periodic Table',
     category: 'Interactive',
-    badge: '3D CSS Preserved',
+    badge: 'Interactive 3D',
     description: 'All 118 chemical elements in interactive 3D space with smooth real-time switching between Sphere, Helix, Table, and 3D Grid layouts.',
     previewTag: '<periodic-table-3d></periodic-table-3d>',
     htmlCode: `<!-- Custom Element (Zero Config) -->
