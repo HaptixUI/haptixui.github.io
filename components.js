@@ -514,6 +514,278 @@ class SakuraTree extends HTMLElement {
 customElements.define('sakura-tree', SakuraTree);
 
 /* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <dna-helix>
+   Mathematical 3D Antiparallel DNA Double Helix with Base Pairs
+   -------------------------------------------------------------------------- */
+class DNAHelix extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="dna-helix-container" title="Drag to rotate 3D DNA in real-time!">
+        <canvas class="dna-helix-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.dna-helix-container');
+    const canvas = this.querySelector('.dna-helix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 320, height = 220;
+    let rotY = 0;
+    let rotX = 0.22;
+    let velY = 0;
+    let velX = 0;
+    let isDragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    let pulseTime = -10;
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // Ambient floating nucleotides
+    const dust = [];
+    for (let i = 0; i < 28; i++) {
+      dust.push({
+        x: (Math.random() - 0.5) * 300,
+        y: (Math.random() - 0.5) * 260,
+        z: (Math.random() - 0.5) * 240,
+        vy: (Math.random() - 0.5) * 0.35,
+        size: Math.random() * 2 + 1,
+        alpha: Math.random() * 0.4 + 0.2
+      });
+    }
+
+    // Pointer Drag Interaction with Inertia
+    container.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      velY = 0;
+      velX = 0;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      container.setPointerCapture(e.pointerId);
+    });
+
+    container.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      velY = dx * 0.009;
+      velX = dy * 0.009;
+      rotY += velY;
+      rotX += velX;
+      rotX = Math.max(-0.6, Math.min(0.6, rotX));
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    const stopDrag = () => { isDragging = false; };
+    container.addEventListener('pointerup', stopDrag);
+    container.addEventListener('pointercancel', stopDrag);
+
+    // Click triggers genetic transcription pulse wave down the helix
+    container.addEventListener('click', () => {
+      pulseTime = performance.now();
+    });
+
+    const baseColorsDark = [
+      { c1: '#f43f5e', c2: '#06b6d4' }, // Adenine (Rose) - Thymine (Cyan)
+      { c1: '#8b5cf6', c2: '#10b981' }, // Guanine (Violet) - Cytosine (Emerald)
+      { c1: '#06b6d4', c2: '#f43f5e' }, // Thymine - Adenine
+      { c1: '#10b981', c2: '#8b5cf6' }  // Cytosine - Guanine
+    ];
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      // Auto spin & inertia decay
+      if (!isDragging) {
+        velY *= 0.95;
+        velX *= 0.95;
+        rotY += 0.02 + velY;
+        rotX += velX;
+        rotX += (0.2 - rotX) * 0.02;
+      }
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const helixHeight = height * 0.76;
+      const radius = Math.min(width, height) * 0.22;
+      const numPairs = 22;
+      const turns = 1.8;
+
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+
+      const project = (x, y, z) => {
+        const x1 = x * cosY + z * sinY;
+        const z1 = -x * sinY + z * cosY;
+        const y2 = y * cosX - z1 * sinX;
+        const z2 = y * sinX + z1 * cosX;
+        const fov = 420;
+        const scale = fov / (fov + z2);
+        return { px: cx + x1 * scale, py: cy + y2 * scale, z: z2, scale };
+      };
+
+      // Ambient dust particles
+      dust.forEach(d => {
+        d.y += d.vy;
+        if (d.y > 130) d.y = -130;
+        if (d.y < -130) d.y = 130;
+        const p = project(d.x, d.y, d.z);
+        ctx.fillStyle = `rgba(56, 189, 248, ${d.alpha * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(p.px, p.py, d.size * p.scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const renderQueue = [];
+      const now = performance.now();
+      const pulseProg = (now - pulseTime) / 1000; // 0 to 1 over 1.0s
+
+      for (let i = 0; i < numPairs; i++) {
+        const t = i / (numPairs - 1);
+        const y = (t - 0.5) * helixHeight;
+        const theta = t * Math.PI * 2 * turns;
+
+        const pA = project(radius * Math.cos(theta), y, radius * Math.sin(theta));
+        const pB = project(radius * Math.cos(theta + Math.PI), y, radius * Math.sin(theta + Math.PI));
+        const midZ = (pA.z + pB.z) / 2;
+        const pair = baseColorsDark[i % baseColorsDark.length];
+
+        // Wave pulse highlight
+        let isPulsing = false;
+        if (pulseProg >= 0 && pulseProg <= 1.2) {
+          const waveDist = Math.abs(t - (pulseProg / 1.0));
+          if (waveDist < 0.12) isPulsing = true;
+        }
+
+        renderQueue.push({
+          type: 'rung',
+          z: midZ,
+          pA, pB,
+          color1: isPulsing ? '#ffffff' : pair.c1,
+          color2: isPulsing ? '#ffffff' : pair.c2,
+          isPulsing
+        });
+
+        renderQueue.push({
+          type: 'node',
+          z: pA.z,
+          p: pA,
+          color: isPulsing ? '#ffffff' : pair.c1
+        });
+
+        renderQueue.push({
+          type: 'node',
+          z: pB.z,
+          p: pB,
+          color: isPulsing ? '#ffffff' : pair.c2
+        });
+      }
+
+      renderQueue.sort((a, b) => a.z - b.z);
+
+      // Continuous 3D Backbone Curves
+      const drawBackbone = (offset) => {
+        ctx.beginPath();
+        const steps = 60;
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const y = (t - 0.5) * helixHeight;
+          const theta = t * Math.PI * 2 * turns + offset;
+          const p = project(radius * Math.cos(theta), y, radius * Math.sin(theta));
+          if (s === 0) ctx.moveTo(p.px, p.py);
+          else ctx.lineTo(p.px, p.py);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+      };
+      drawBackbone(0);
+      drawBackbone(Math.PI);
+
+      // Depth-Sorted Elements
+      renderQueue.forEach(item => {
+        const depthFactor = Math.max(0.12, Math.min(1.0, (item.z + 180) / 360));
+
+        if (item.type === 'rung') {
+          const mx = (item.pA.px + item.pB.px) / 2;
+          const my = (item.pA.py + item.pB.py) / 2;
+
+          ctx.lineWidth = Math.max(1.6, 3.0 * depthFactor);
+          ctx.lineCap = 'round';
+          ctx.globalAlpha = 0.35 + 0.65 * depthFactor;
+
+          // Left Half
+          ctx.strokeStyle = item.color1;
+          ctx.beginPath();
+          ctx.moveTo(item.pA.px, item.pA.py);
+          ctx.lineTo(mx, my);
+          ctx.stroke();
+
+          // Right Half
+          ctx.strokeStyle = item.color2;
+          ctx.beginPath();
+          ctx.moveTo(mx, my);
+          ctx.lineTo(item.pB.px, item.pB.py);
+          ctx.stroke();
+
+          // Central Hydrogen Bond
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(mx, my, Math.max(1.4, 2.6 * depthFactor), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.globalAlpha = 1.0;
+        } else if (item.type === 'node') {
+          const nodeRadius = Math.max(2.8, (5.0 + 2.4 * depthFactor) * item.p.scale);
+          ctx.save();
+          ctx.globalAlpha = 0.4 + 0.6 * depthFactor;
+
+          ctx.fillStyle = item.color;
+          ctx.beginPath();
+          ctx.arc(item.p.px, item.p.py, nodeRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (depthFactor > 0.4) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(item.p.px - nodeRadius * 0.3, item.p.py - nodeRadius * 0.3, nodeRadius * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+      });
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
+  }
+}
+customElements.define('dna-helix', DNAHelix);
+
+/* --------------------------------------------------------------------------
    COMPONENTS REGISTRY FOR HAPTIXUI
    -------------------------------------------------------------------------- */
 export const COMPONENTS_REGISTRY = [
@@ -735,5 +1007,57 @@ function render() {
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);`
+  },
+  {
+    id: 'dna-helix',
+    name: '3D Interactive DNA Double Helix',
+    category: 'Interactive',
+    badge: 'Canvas 3D',
+    description: 'Mathematical 3D antiparallel double helix with nucleotide base pairs (Adenine-Thymine, Guanine-Cytosine), hydrogen bonds, and interactive 3D drag physics.',
+    previewTag: '<dna-helix></dna-helix>',
+    htmlCode: `<!-- Custom Element (Zero Config) -->
+<dna-helix></dna-helix>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* 3D DNA Helix Container */
+.dna-helix-container {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  cursor: grab;
+  touch-action: none;
+}
+.dna-helix-container:active {
+  cursor: grabbing;
+}
+.dna-helix-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}`,
+    jsCode: `// 1. Antiparallel 3D Double Helix Coordinates
+for (let i = 0; i < numPairs; i++) {
+  const t = i / (numPairs - 1);
+  const y = (t - 0.5) * helixHeight;
+  const theta = t * Math.PI * 2 * turns;
+
+  // Strand A & Strand B (Opposite Phase)
+  const pA = project(R * Math.cos(theta), y, R * Math.sin(theta));
+  const pB = project(R * Math.cos(theta + Math.PI), y, R * Math.sin(theta + Math.PI));
+
+  // 2. Draw Nucleotide Base Pair Rung
+  drawRung(pA, pB, getPairColor(i));
+}
+
+// 3. 3D Perspective Projection Matrix
+function project(x, y, z) {
+  const xr = x * Math.cos(rotY) + z * Math.sin(rotY);
+  const zr = -x * Math.sin(rotY) + z * Math.cos(rotY);
+  const yr = y * Math.cos(rotX) - zr * Math.sin(rotX);
+  const scale = 420 / (420 + zr);
+  return { px: cx + xr * scale, py: cy + yr * scale, z: zr };
+}`
   }
 ];
