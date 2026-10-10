@@ -378,9 +378,10 @@
     .element-modal {
       position: fixed;
       inset: 0;
-      background: rgba(3, 7, 18, 0.85);
-      backdrop-filter: blur(12px);
-      z-index: 200;
+      background: rgba(3, 7, 18, 0.90);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 99999;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -388,6 +389,11 @@
       pointer-events: none;
       transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       padding: 20px;
+    }
+
+    body.modal-open .viewport-scene {
+      filter: blur(10px) brightness(0.25);
+      pointer-events: none;
     }
 
     .element-modal.open {
@@ -912,11 +918,17 @@
       modalStatState.textContent = (stateMap[el.symbol] || 'Solid') + ' at 298 K';
 
       modal.classList.add('open');
+      document.body.classList.add('modal-open');
     }
 
-    modalCloseBtn.addEventListener('click', () => modal.classList.remove('open'));
+    const closeModal = () => {
+      modal.classList.remove('open');
+      document.body.classList.remove('modal-open');
+    };
+
+    modalCloseBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.classList.remove('open');
+      if (e.target === modal) closeModal();
     });
 
     // Mode Switcher Buttons
