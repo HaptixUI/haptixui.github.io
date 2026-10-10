@@ -271,7 +271,7 @@
 periodic-table-3d {
   display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: 320px;
 }
 
 .ptable-wrap {
@@ -382,6 +382,10 @@ periodic-table-3d {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+}
+
+.modal-preview-stage periodic-table-3d {
+  max-width: 460px;
 }
 
 .modal-preview-stage .ptable-wrap {
