@@ -102,13 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (sidebarExpandFloatBtn) {
-    sidebarExpandFloatBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleSidebar(true);
-    });
-  }
-
   // Set Active Category
   function setCategory(cat) {
     activeCategory = cat;
@@ -189,11 +182,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Sort dropdown
-  sortSelect.addEventListener('change', (e) => {
-    activeSort = e.target.value;
+  // Modern Custom Sort Dropdown Handler
+  const sortDropdown = document.getElementById('sortDropdown');
+  const sortTrigger = document.getElementById('sortTrigger');
+  const sortCurrentLabel = document.getElementById('sortCurrentLabel');
+  const sortMenuItems = document.querySelectorAll('#sortMenu .dropdown-item');
+
+  function setSort(val, label) {
+    activeSort = val;
+    if (sortCurrentLabel) sortCurrentLabel.textContent = `Sort: ${label}`;
+    if (sortSelect) sortSelect.value = val;
+
+    sortMenuItems.forEach(item => {
+      const isSelected = item.dataset.value === val;
+      item.classList.toggle('active', isSelected);
+      item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+
+    if (sortDropdown) {
+      sortDropdown.classList.remove('open');
+      if (sortTrigger) sortTrigger.setAttribute('aria-expanded', 'false');
+    }
     renderGrid();
-  });
+  }
+
+  if (sortTrigger && sortDropdown) {
+    sortTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = sortDropdown.classList.toggle('open');
+      sortTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    sortMenuItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = item.dataset.value;
+        const text = item.querySelector('.item-title')?.textContent || 'Default';
+        setSort(val, text);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!sortDropdown.contains(e.target)) {
+        sortDropdown.classList.remove('open');
+        sortTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sortDropdown.classList.contains('open')) {
+        sortDropdown.classList.remove('open');
+        sortTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      const opt = sortSelect.options[sortSelect.selectedIndex];
+      setSort(e.target.value, opt ? opt.text.replace('Sort: ', '') : 'Default');
+    });
+  }
 
   // Render Grid
   function renderGrid() {
@@ -211,6 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sort
     if (activeSort === 'name') {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (activeSort === 'name-desc') {
+      filtered.sort((a, b) => b.name.localeCompare(a.name));
     }
 
     // Update count badge
@@ -260,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="comp-body">
           <div class="comp-info-top">
             <h2 class="comp-title">${comp.name}</h2>
-            <span class="comp-badge">${comp.badge}</span>
           </div>
 
           <div class="comp-actions-row">
@@ -269,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <polyline points="16 18 22 12 16 6"></polyline>
                 <polyline points="8 6 2 12 8 18"></polyline>
               </svg>
-              Get Code
+              <span>Get Code</span>
             </button>
           </div>
         </div>
@@ -283,6 +333,20 @@ document.addEventListener('DOMContentLoaded', () => {
         stageEl.classList.toggle('stage-light');
       });
 
+      // 3D Card Hover Tilt Micro-Interaction (Desktop)
+      card.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 1024) return;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotX = -(y / (rect.height / 2)) * 3.5;
+        const rotY = (x / (rect.width / 2)) * 3.5;
+        card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+
       // Inspect Modal
       const inspectBtn = card.querySelector('.inspect-btn');
       inspectBtn.addEventListener('click', () => {
@@ -292,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.appendChild(card);
     });
   }
+
 
   // Open Inspector Modal
   function openModal(comp) {
@@ -357,7 +422,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 
+  // Dynamic category counts synchronization
+  function updateCategoryCounts() {
+    const counts = {
+      'All': COMPONENTS_REGISTRY.length,
+      'Buttons': COMPONENTS_REGISTRY.filter(c => c.category === 'Buttons').length,
+      'Interactive': COMPONENTS_REGISTRY.filter(c => c.category === 'Interactive').length
+    };
+    sidebarNavItems.forEach(item => {
+      const cat = item.dataset.category;
+      const countEl = item.querySelector('.item-count');
+      if (countEl && counts[cat] !== undefined) {
+        countEl.textContent = counts[cat];
+      }
+    });
+  }
+
   // Initial load
+  updateCategoryCounts();
   renderGrid();
 
   // Deep-linking: Automatically open modal for direct reel shares (e.g. ?id=download-button)
@@ -373,3 +455,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+
