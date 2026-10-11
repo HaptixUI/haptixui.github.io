@@ -271,24 +271,23 @@
 periodic-table-3d {
   display: block;
   width: 100%;
-  max-width: 320px;
+  height: 100%;
 }
 
 .ptable-wrap {
   position: relative;
   width: 100%;
-  max-width: 100%;
-  height: 220px;
+  height: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  background: #07090e;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
   user-select: none;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition: background 0.25s ease;
 }
 
 .ptable-wrap:active {
@@ -303,7 +302,7 @@ periodic-table-3d {
   right: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 8px;
   z-index: 10;
   pointer-events: auto;
@@ -444,5 +443,143 @@ periodic-table-3d {
   background: #0284c7;
   color: #ffffff;
 }
+
+/* --------------------------------------------------------------------------
+   COMPONENT: CYBERNETIC TACTILE TOGGLE SWITCH (<cyber-switch>)
+   -------------------------------------------------------------------------- */
+.cyber-switch-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.cyber-switch-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  outline: none;
+  border-radius: 9999px;
+  touch-action: manipulation;
+  transition: transform 0.15s ease;
+}
+
+.cyber-switch-btn:active {
+  transform: scale(0.96);
+}
+
+.switch-chassis {
+  position: relative;
+  width: 116px;
+  height: 50px;
+  background: #0d1017;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.7),
+    0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.switch-rail {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  background: #05060a;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.switch-thumb {
+  position: absolute;
+  left: 4px;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, #242938, #141722);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, border-color 0.3s ease;
+  z-index: 2;
+}
+
+.thumb-core {
+  width: 14px;
+  height: 14px;
+  background: #090a0f;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.switch-status {
+  position: absolute;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.status-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #475569;
+  box-shadow: 0 0 2px #475569;
+  transition: all 0.3s ease;
+}
+
+/* Active State */
+.cyber-switch-btn.is-active .switch-chassis {
+  border-color: rgba(0, 168, 255, 0.45);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 0 1.5px rgba(0, 168, 255, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.cyber-switch-btn.is-active .switch-thumb {
+  transform: translateX(66px);
+  background: linear-gradient(145deg, #0f2b48, #0a1b2d);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(56, 189, 248, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.cyber-switch-btn.is-active .thumb-core {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.cyber-switch-btn.is-active .switch-status {
+  left: 14px;
+  right: auto;
+  color: #38bdf8;
+}
+
+.cyber-switch-btn.is-active .status-led {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
 
 
