@@ -87,6 +87,47 @@ class CartButton extends HTMLElement {
 customElements.define('cart-button', CartButton);
 
 /* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <cyber-switch>
+   Tactile Cybernetic Slide Switch with Micro-LED & Spring Rail
+   -------------------------------------------------------------------------- */
+class CyberSwitch extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="cyber-switch-wrap">
+        <button class="cyber-switch-btn" type="button" aria-pressed="false" role="switch" aria-label="Cybernetic toggle switch">
+          <div class="switch-chassis">
+            <div class="switch-rail"></div>
+            <div class="switch-thumb">
+              <div class="thumb-core"></div>
+            </div>
+            <div class="switch-status">
+              <span class="status-led"></span>
+              <span class="status-text">OFF</span>
+            </div>
+          </div>
+        </button>
+      </div>
+    `;
+
+    const btn = this.querySelector('.cyber-switch-btn');
+    const statusText = this.querySelector('.status-text');
+
+    btn.addEventListener('click', () => {
+      const isPressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', !isPressed);
+      btn.classList.toggle('is-active', !isPressed);
+      statusText.textContent = !isPressed ? 'ACTIVE' : 'OFF';
+
+      this.dispatchEvent(new CustomEvent('change', {
+        detail: { active: !isPressed },
+        bubbles: true
+      }));
+    });
+  }
+}
+customElements.define('cyber-switch', CyberSwitch);
+
+/* --------------------------------------------------------------------------
    CUSTOM ELEMENT: <heart-3d>
    Mathematical 3D Volumetric Heart Particle Cloud
    -------------------------------------------------------------------------- */
@@ -801,10 +842,6 @@ class PeriodicTable3D extends HTMLElement {
             <button class="pt-btn" data-mode="table">Table</button>
             <button class="pt-btn" data-mode="grid">Grid</button>
           </div>
-          <a href="periodic_table.html" target="_blank" class="pt-lab-link" title="Open Full Screen Lab">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Lab ↗
-          </a>
         </div>
         <canvas class="ptable-canvas"></canvas>
       </div>
@@ -845,28 +882,28 @@ class PeriodicTable3D extends HTMLElement {
       items.forEach((item, i) => {
         const el = item.el;
         if (mode === 'sphere') {
-          const r = Math.min(width, height) * 0.38;
+          const r = Math.min(width, height) * 0.28;
           const phi = Math.acos(-1 + (2 * i) / N);
           const theta = Math.sqrt(N * Math.PI) * phi;
           item.tgtX = r * Math.sin(phi) * Math.sin(theta);
           item.tgtY = -r * Math.cos(phi);
           item.tgtZ = r * Math.sin(phi) * Math.cos(theta);
         } else if (mode === 'helix') {
-          const r = Math.min(width, height) * 0.35;
+          const r = Math.min(width, height) * 0.26;
           const theta = i * 0.175 + Math.PI;
-          const y = -(i * 1.5) + (N * 1.5) / 2;
+          const y = -(i * 1.2) + (N * 1.2) / 2;
           item.tgtX = r * Math.sin(theta);
           item.tgtY = y;
           item.tgtZ = r * Math.cos(theta);
         } else if (mode === 'table') {
           // 18 columns, periods 1 to 9.8. Responsive spacing so 18 columns fit perfectly
-          const spacingX = Math.min(16.5, Math.max(10, (width - 32) / 19));
-          const spacingY = Math.min(19.5, Math.max(12, (height - 52) / 11));
+          const spacingX = Math.min(14, Math.max(9, (width - 40) / 19));
+          const spacingY = Math.min(16, Math.max(10, (height - 64) / 11));
           item.tgtX = (el.group - 9.5) * spacingX;
           item.tgtY = (el.period - 4.8) * spacingY;
           item.tgtZ = 0;
         } else if (mode === 'grid') {
-          const s = Math.min(26, Math.max(18, Math.min(width, height) * 0.11));
+          const s = Math.min(20, Math.max(14, Math.min(width, height) * 0.085));
           const gx = (i % 5) - 2;
           const gy = (Math.floor(i / 5) % 5) - 2;
           const gz = Math.floor(i / 25) - 2;
@@ -954,7 +991,7 @@ class PeriodicTable3D extends HTMLElement {
       }
 
       const cx = width / 2;
-      const cy = height / 2 - 12; // breathing space above bottom toolbar
+      const cy = height / 2 - 18; // generous clearance above bottom toolbar
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
       const fov = 340;
@@ -1090,6 +1127,57 @@ const TRANSITIONS = {
     jsCode: `btn.addEventListener('click', () => {
   btn.classList.add('animating');
   setTimeout(() => btn.classList.add('ordered'), 2200);
+});`
+  },
+  {
+    id: 'cyber-switch',
+    name: 'Cybernetic Tactile Toggle Switch',
+    category: 'Buttons',
+    badge: 'Tactile Physics',
+    description: 'A mechanical slide switch with sub-surface luminous rail, active status LED, and physical spring inertia.',
+    previewTag: '<cyber-switch></cyber-switch>',
+    htmlCode: `<!-- Custom Element (Zero Setup) -->
+<cyber-switch></cyber-switch>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">
+
+<script type="module">
+  const toggle = document.querySelector('cyber-switch');
+  toggle?.addEventListener('change', (e) => {
+    console.log('Switch active:', e.detail.active);
+  });
+</script>`,
+    cssCode: `/* Cyber Switch Chassis & Rail */
+.switch-chassis {
+  position: relative;
+  width: 116px;
+  height: 50px;
+  background: #0d1017;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+.switch-thumb {
+  position: absolute;
+  left: 4px;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, #242938, #141722);
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cyber-switch-btn.is-active .switch-thumb {
+  transform: translateX(66px);
+  background: linear-gradient(145deg, #0f2b48, #0a1b2d);
+}`,
+    jsCode: `// Toggle State Listener
+const toggle = document.querySelector('cyber-switch');
+toggle.addEventListener('change', (e) => {
+  console.log('Status:', e.detail.active ? 'ARMED' : 'STANDBY');
 });`
   },
   {
