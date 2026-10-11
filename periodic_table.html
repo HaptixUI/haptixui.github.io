@@ -231,7 +231,7 @@
       will-change: transform;
     }
 
-    /* Element Card Style - Pure solid dark & razor sharp highlight rim */
+    /* Element Card 3D Object Container - Full 3D rotation support */
     .element-card {
       position: absolute;
       left: 0;
@@ -240,36 +240,134 @@
       height: 128px;
       margin-left: -48px;
       margin-top: -64px;
-      border-radius: 12px;
-      background: #0d1322;
-      border: 1.5px solid rgba(255, 255, 255, 0.14);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 9px 8px 8px 8px;
       cursor: pointer;
       transform-style: preserve-3d;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
+      -webkit-transform-style: preserve-3d;
       will-change: transform, opacity;
-      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.75);
-    }
-
-    .element-card:hover {
-      background: #141d33;
-      border-color: #ffffff;
-      box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 12px 28px -4px rgba(0, 0, 0, 0.85);
-      z-index: 1000 !important;
+      transition: filter 0.18s ease;
     }
 
     .element-card.dimmed {
       opacity: 0.14 !important;
     }
 
-    .element-card.highlighted {
+    /* Common Card Face Surface */
+    .card-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 9px 8px 8px 8px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      overflow: hidden;
+      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.75);
+    }
+
+    /* FRONT FACE: Deep navy/dark solid slab with razor highlight rim */
+    .card-front {
+      background: #0d1322;
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      transform: rotateY(0deg) translateZ(1px);
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .element-card:hover .card-front {
+      background: #141d33;
+      border-color: #ffffff;
+      box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 12px 28px -4px rgba(0, 0, 0, 0.85);
+      z-index: 1000 !important;
+    }
+
+    /* BACK FACE: Ultra-realistic obsidian/crystal mirror reflection (Ulta / Mirrored) */
+    .card-back {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(13, 19, 34, 0.96) 38%, rgba(22, 33, 53, 0.92) 72%, rgba(255, 255, 255, 0.12) 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.26);
+      transform: rotateY(180deg) translateZ(1px);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 10px 24px -4px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    /* Specular diagonal glass sheen beam across the mirror surface */
+    .card-back::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.06) 44%, rgba(255, 255, 255, 0.3) 49%, rgba(255, 255, 255, 0.38) 50%, rgba(255, 255, 255, 0.12) 52%, transparent 62%);
+      pointer-events: none;
+      transform: rotate(8deg);
+    }
+
+    /* Subtle tinted ambient glow from bottom reflecting element category */
+    .card-back::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 120%, var(--cat-bg), transparent 75%);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .element-card:hover .card-back {
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9), inset 0 1px 3px rgba(255, 255, 255, 0.45), 0 12px 28px -4px rgba(0, 0, 0, 0.9);
+      z-index: 1000 !important;
+    }
+
+    .element-card.highlighted .card-front,
+    .element-card.highlighted .card-back {
       border-color: var(--cat-color);
       box-shadow: 0 0 0 2px var(--cat-color), 0 10px 24px -4px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Mirrored ("Ulta") Inverted Text Elements for Genuine Optical Physics */
+    .mirror-flipped {
+      display: inline-block;
+      transform: scaleX(-1);
+    }
+
+    .card-back .card-num,
+    .card-back .card-mass {
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 10px;
+      z-index: 2;
+    }
+
+    .card-back .card-symbol {
+      color: var(--cat-color);
+      opacity: 0.65;
+      text-shadow: 0 0 12px var(--cat-color), 0 2px 14px rgba(0, 0, 0, 0.9);
+      filter: blur(0.25px);
+      z-index: 2;
+    }
+
+    .card-back .card-name {
+      color: rgba(226, 232, 240, 0.65);
+      z-index: 2;
+    }
+
+    /* Mirror central holographic watermark badge */
+    .mirror-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      color: rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+      z-index: 1;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
     }
 
     .card-top {
@@ -800,13 +898,29 @@
         card.style.setProperty('--cat-bg', catInfo.bg);
 
         card.innerHTML = `
-          <div class="card-top">
-            <span class="card-num">${el.number}</span>
-            <span class="card-mass">${el.mass}</span>
+          <!-- Front Face: Crisp element slab -->
+          <div class="card-face card-front">
+            <div class="card-top">
+              <span class="card-num">${el.number}</span>
+              <span class="card-mass">${el.mass}</span>
+            </div>
+            <div class="card-symbol">${el.symbol}</div>
+            <div class="card-bottom">
+              <span class="card-name" title="${el.name}">${el.name}</span>
+            </div>
           </div>
-          <div class="card-symbol">${el.symbol}</div>
-          <div class="card-bottom">
-            <span class="card-name" title="${el.name}">${el.name}</span>
+
+          <!-- Back Face: Ultra-realistic obsidian/crystal mirror reflection (Ulta) -->
+          <div class="card-face card-back">
+            <div class="card-top">
+              <span class="card-mass mirror-flipped">${el.mass}</span>
+              <span class="card-num mirror-flipped">${el.number}</span>
+            </div>
+            <div class="card-symbol mirror-flipped">${el.symbol}</div>
+            <div class="card-bottom">
+              <span class="card-name mirror-flipped" title="${el.name}">${el.name}</span>
+            </div>
+            <div class="mirror-watermark">⬡</div>
           </div>
         `;
 
